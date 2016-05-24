@@ -31,6 +31,754 @@ All dates are served in ISO 8601 format in UTC timezone.
 ISO 8601 date formats in any timezone are accepted.
 
 
+# Group Answers
+
+## Answers Collection [/api/answers?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of answers returned in the request
+    + page (number, optional) - Distance from beginning of the array of available answers
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Answers [GET]
+
+List all Answers.
+
++ Response 200 (application/hal+json)
+
+        {
+          "_embedded": {
+            "answers": [
+              {
+                "id": 1,
+                "correct": true,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/answers\/1"
+                  }
+                },
+                "_embedded": {
+                    "text": {
+                        "cs": "Odpoved 1",
+                        "en": "Answer 1"
+                    }
+                }
+              },
+              {
+                "id": 2,
+                "correct": false,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/answers\/2"
+                  }
+                },
+                "_embedded": {
+                    "text": {
+                        "cs": "Odpoved 1",
+                        "en": "Answer 1"
+                    }
+                }
+              }
+            ]
+          }
+        }
+
+### Create an Answer [POST]
+
+Creates an Answer with given parameters.
+
++ Request (application/json)
+
+        {
+            "question": 1,
+            "correct": false,
+            "text": {
+              "cs": "Lorem czsum...",
+              "en": "Lorem ensum..."
+            }
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "inserted": {
+            "id": 13,
+            "correct": false,
+            "_links": {
+              "self": {
+                "href": "\/api\/answers\/13"
+              }
+            },
+            "_embedded": {
+              "text": {
+                "cs": "Lorem czsum...",
+                "en": "Lorem ensum..."
+              },
+              "question": {
+                "id": 1,
+                "type": "closed",
+                "shuffle_answers": true,
+                "number_of_answers": 4,
+                "multiple_correct": true,
+                "short_answer": true,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/questions\/1"
+                  }
+                },
+                "_embedded": {
+                    "text": {
+                        "cs": "Odpoved 1",
+                        "en": "Answer 1"
+                    }
+                }
+              }
+            }
+          }
+        }
+
+## Question's Answers Collection [/api/questions/{question_id}/answers?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + question_id (number, required) - Id of the Question which the Answers belong to.
+    + limit (number, optional) - Limits number of answers returned in the request
+    + page (number, optional) - Distance from beginning of the array of available answers
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Question's Answers [GET]
+
+Lists all Answers which belong to the given Question.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "answers": [
+                    {
+                        "id": 1,
+                        "correct": true,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/answers\/1"
+                            }
+                        },
+                        "_embedded": {
+                            "text": {
+                                "cs": "Odpoved 1",
+                                "en": "Answer 1"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "correct": false,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/answers\/2"
+                            }
+                        },
+                        "_embedded": {
+                            "text": {
+                                "cs": "Odpoved 2",
+                                "en": "Answer 2"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+## Answer [/api/answers/{id}]
+
++ Attributes
+    + id (number, required) - The unique id of the Answer
+    + correct (boolean, required) - Is the answer correct? **Only displayed if you are superadmin!**
+    + embedded.question (object, required) - The Question to which the Answer belongs
+    + embedded.text (object, required) - Localized text of the answer
+
++ Parameters
+    + id (number, required) - Answer's id
+
+### Retrieve an Answer [GET]
+    
+Retrieves Client with the given ID.
+
++ Response 200 (application/hal+json)
+
+        {
+          "id": 1,
+          "correct": true,
+          "_links": {
+            "self": {
+              "href": "\/api\/answers\/1"
+            }
+          },
+          "_embedded": {
+            "text": {
+              "cs": "Odpoved 1",
+              "en": "Answer 1"
+            },
+            "question": {
+              "id": 1,
+              "type": "closed",
+              "shuffle_answers": true,
+              "number_of_answers": 4,
+              "multiple_correct": true,
+              "short_answer": true,
+              "_links": {
+                "self": {
+                  "href": "\/api\/questions\/1"
+                }
+              },
+              "_embedded": {
+                "text": {
+                    "cs": "Otazka 1",
+                    "en": "Question 1"
+                }
+              }
+            }
+          }
+        }
+
+### Update an Answer [PUT]
+
+Updates a Client with the given ID.
+
++ Request (application/json)
+
+        {
+            "question": 1,
+            "correct": true,
+            "text": {
+              "cs": "Whatever cs...",
+              "en": "Whatever en..."
+            }
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "updated": {
+            "id": 1,
+            "correct": true,
+            "_links": {
+              "self": {
+                "href": "\/api\/answers\/1"
+              }
+            },
+            "_embedded": {
+              "text": {
+                "en": "Whatever en...",
+                "cs": "Whatever cs..."
+              },
+              "question": {
+                "id": 1,
+                "type": "closed",
+                "shuffle_answers": true,
+                "number_of_answers": 4,
+                "multiple_correct": true,
+                "short_answer": true,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/questions\/1"
+                  }
+                },
+                "_embedded": {
+                  "text": []
+                }
+              }
+            }
+          }
+        }
+
+
+### Hide an Answer [DELETE]
+
+Sets Answer as hidden.
+
++ Response 200 (applicaiton/hal+json)
+
+        {
+            "ok": true
+        }
+
+
+# Group Answer Fills
+
+## Answer Fills Collection [/api/answer-fills?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of candidates returned in the request
+    + page (number, optional) - Distance from beginning of the array of available candidates
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Answer Fills [GET]
+
+List all Answer Fills.
+
++ Response 200 (application/hal+json)
+
+        {
+          "_embedded": {
+            "answer_fills": [
+              {
+                "id": 1,
+                "created": "2015-12-17T15:52:33+0100",
+                "_links": {
+                  "self": {
+                    "href": "\/api\/question-fills\/1"
+                  },
+                  "answer": {
+                    "href": "\/api\/answers?id=1"
+                  },
+                  "questionFill": {
+                    "href": "\/api\/question-fills?id=1"
+                  }
+                }
+              },
+              {
+                "id": 2,
+                "created": "2015-12-17T15:52:33+0100",
+                "_links": {
+                  "self": {
+                    "href": "\/api\/question-fills\/2"
+                  },
+                  "answer": {
+                    "href": "\/api\/answers?id=2"
+                  },
+                  "questionFill": {
+                    "href": "\/api\/question-fills?id=1"
+                  }
+                }
+              }
+            ]
+          }
+        }
+
+
+## Candidate's Answer Fills Collection [/api/candidates/{candidate_id}/answer-fills?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + candidate_id (number, optional) - ID of the Candidate.
+    + limit (number, optional) - Limits number of candidates returned in the request
+    + page (number, optional) - Distance from beginning of the array of available candidates
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+
+### List Candidate's Answer Fills [GET]
+
+Lists all Answer Fills belonging to the Candidate.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "answer_fills": [
+                    {
+                        "id": 2,
+                        "created": "2015-12-17T15:52:45+0100",
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/question-fills\/2"
+                            },
+                            "answer": {
+                                "href": "\/api\/answers?id=2"
+                            },
+                            "questionFill": {
+                                "href": "\/api\/question-fills?id=1"
+                            }
+                        }
+                    },
+                    {
+                        "id": 1,
+                        "created": "2015-12-17T15:52:45+0100",
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/question-fills\/1"
+                            },
+                            "answer": {
+                                "href": "\/api\/answers?id=1"
+                            },
+                            "questionFill": {
+                                "href": "\/api\/question-fills?id=1"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+
+## Question Fill's Answer Fills Collection [/api/question-fills/{question_fill_id}/answer-fills?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + question_fill_id (number, optional) - ID of the Question Fill.
+    + limit (number, optional) - Limits number of candidates returned in the request
+    + page (number, optional) - Distance from beginning of the array of available candidates
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+
+### List Question Fill's Answer Fills [GET]
+
+Lists all Answer Fills belonging to the Question Fill.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "answer_fills": [
+                    {
+                        "id": 2,
+                        "created": "2015-12-17T15:52:50+0100",
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/question-fills\/2"
+                            },
+                            "answer": {
+                                "href": "\/api\/answers?id=2"
+                            },
+                            "questionFill": {
+                                "href": "\/api\/question-fills?id=1"
+                            }
+                        }
+                    },
+                    {
+                        "id": 1,
+                        "created": "2015-12-17T15:52:50+0100",
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/question-fills\/1"
+                            },
+                            "answer": {
+                                "href": "\/api\/answers?id=1"
+                            },
+                            "questionFill": {
+                                "href": "\/api\/question-fills?id=1"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+
+## Answer Fill [/api/answer-fills/{id}]
+
++ Attributes
+
++ Parameters
+    + id (number, required) - Answer Fill's id
+
+### Retrieve an Answer Fill [GET]
+
+Retrieves an Answer Fill with the given ID.
+
++ Response 200 (application/hal+json)
+
+        {
+          "id": 1,
+          "created": "2015-12-17T15:53:01+0100",
+          "_links": {
+            "self": {
+              "href": "\/api\/question-fills\/1"
+            },
+            "answer": {
+              "href": "\/api\/answers?id=1"
+            },
+            "questionFill": {
+              "href": "\/api\/question-fills?id=1"
+            }
+          },
+          "_embedded": {
+            "answer": {
+              "id": 1,
+              "_links": {
+                "self": {
+                  "href": "\/api\/answers\/1"
+                }
+              },
+              "_embedded": {
+                "text": []
+              }
+            },
+            "questionFill": {
+              "id": 1,
+              "created": "2015-12-17T15:53:01+0100",
+              "_links": {
+                "self": {
+                  "href": "\/api\/question-fills\/1"
+                },
+                "question": {
+                  "href": "\/api\/questions?id=1"
+                },
+                "test_fill": {
+                  "href": "\/api\/test-fills?id=1"
+                }
+              }
+            }
+          }
+        }
+
+
+# Group Drawn Answers
+
+## Drawn Answers Collection [/api/drawn-answers?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of candidates returned in the request
+    + page (number, optional) - Distance from beginning of the array of available candidates
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Drawn Answers [GET]
+
+List all Drawn Answers.
+
++ Response 200 (application/hal+json)
+        
+        {
+          "_embedded": {
+            "drawn_answers": [
+              {
+                "id": 1,
+                "order": 1,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/drawn-answers\/1"
+                  },
+                  "answer": {
+                    "href": "\/api\/answers\/1"
+                  }
+                },
+                "_embedded": {
+                  "answer": {
+                    "id": 1,
+                    "correct": true,
+                    "_links": {
+                      "self": {
+                        "href": "\/api\/answers\/1"
+                      }
+                    },
+                    "_embedded": {
+                      "text": []
+                    }
+                  }
+                }
+              },
+              {
+                "id": 2,
+                "order": 1,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/drawn-answers\/2"
+                  },
+                  "answer": {
+                    "href": "\/api\/answers\/2"
+                  }
+                },
+                "_embedded": {
+                  "answer": {
+                    "id": 2,
+                    "correct": false,
+                    "_links": {
+                      "self": {
+                        "href": "\/api\/answers\/2"
+                      }
+                    },
+                    "_embedded": {
+                      "text": []
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+
+
+## Candidate's Drawn Answers Collection [/api/candidates/{candidate_id}/drawn-answers?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + candidate_id (number, required) - ID of the Candiate.
+    + limit (number, optional) - Limits number of candidates returned in the request
+    + page (number, optional) - Distance from beginning of the array of available candidates
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Candidate's Drawn Answers [GET]
+
+List all Drawn Answers belonnging to the Candidate.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "drawn_answers": [
+                    {
+                        "id": 2,
+                        "order": 2,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-answers\/2"
+                            },
+                            "answer": {
+                                "href": "\/api\/answers\/2"
+                            }
+                        },
+                        "_embedded": {
+                            "answer": {
+                                "id": 2,
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/answers\/2"
+                                    }
+                                },
+                                "_embedded": {
+                                    "text": []
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "id": 1,
+                        "order": 1,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-answers\/1"
+                            },
+                            "answer": {
+                                "href": "\/api\/answers\/1"
+                            }
+                        },
+                        "_embedded": {
+                            "answer": {
+                                "id": 1,
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/answers\/1"
+                                    }
+                                },
+                                "_embedded": {
+                                    "text": []
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+## Drawn Question's Drawn Answers Collection [/api/drawn-questions/{drawn_question_id}/drawn-answers?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + drawn_question_id (number, required) - ID of the Drawn Question.
+    + limit (number, optional) - Limits number of candidates returned in the request
+    + page (number, optional) - Distance from beginning of the array of available candidates
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Drawn Question's Drawn Answers [GET]
+
+List all Drawn Answers belonging to the Drawn Question.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "drawn_answers": [
+                    {
+                        "id": 2,
+                        "order": 2,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-answers\/2"
+                            },
+                            "answer": {
+                                "href": "\/api\/answers\/2"
+                            }
+                        },
+                        "_embedded": {
+                            "answer": {
+                                "id": 2,
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/answers\/2"
+                                    }
+                                },
+                                "_embedded": {
+                                    "text": []
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "id": 1,
+                        "order": 1,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-answers\/1"
+                            },
+                            "answer": {
+                                "href": "\/api\/answers\/1"
+                            }
+                        },
+                        "_embedded": {
+                            "answer": {
+                                "id": 1,
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/answers\/1"
+                                    }
+                                },
+                                "_embedded": {
+                                    "text": []
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+## Drawn Answer [/api/drawn-answers/{id}]
+
++ Attributes
+
++ Parameters
+    + id (number, required) - Drawn Answer's id
+
+### Retrieve a Drawn Answer [GET]
+
+Retrieves a Drawn Answer with the given ID.
+
++ Response 200 (application/hal+json)
+
+        {
+          "id": 1,
+          "order": 1,
+          "_links": {
+            "self": {
+              "href": "\/api\/drawn-answers\/1"
+            },
+            "answer": {
+              "href": "\/api\/answers\/1"
+            }
+          },
+          "_embedded": {
+            "answer": {
+              "id": 1,
+              "_links": {
+                "self": {
+                  "href": "\/api\/answers\/1"
+                }
+              },
+              "_embedded": {
+                "text": []
+              }
+            }
+          }
+        }
+
+
 # Group Cute Test Fills
 
 ## Cute Test Fills Collection [/api/cute-test-fills]
@@ -918,6 +1666,7 @@ Retrieves a list of all Tests belonging to the given Job.
                 }
             }
         }
+
 
 # Group Instruments
 
@@ -3977,280 +4726,6 @@ Creates a Knowledge Question Fill for given Knowledge Test Fill, Question with g
                 },
                 "answer_fills": []
             }
-        }
-
-
-# Group Answers
-
-## Answers Collection [/api/answers?limit={limit}&page={page}&sort={sort}]
-
-+ Parameters
-    + limit (number, optional) - Limits number of answers returned in the request
-    + page (number, optional) - Distance from beginning of the array of available answers
-    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
-
-### List Answers [GET]
-
-List all Answers.
-
-+ Response 200 (application/hal+json)
-
-        {
-          "_embedded": {
-            "answers": [
-              {
-                "id": 1,
-                "correct": true,
-                "_links": {
-                  "self": {
-                    "href": "\/api\/answers\/1"
-                  }
-                },
-                "_embedded": {
-                    "text": {
-                        "cs": "Odpoved 1",
-                        "en": "Answer 1"
-                    }
-                }
-              },
-              {
-                "id": 2,
-                "correct": false,
-                "_links": {
-                  "self": {
-                    "href": "\/api\/answers\/2"
-                  }
-                },
-                "_embedded": {
-                    "text": {
-                        "cs": "Odpoved 1",
-                        "en": "Answer 1"
-                    }
-                }
-              }
-            ]
-          }
-        }
-
-### Create an Answer [POST]
-
-Creates an Answer with given parameters.
-
-+ Request (application/json)
-
-        {
-            "question": 1,
-            "correct": false,
-            "text": {
-              "cs": "Lorem czsum...",
-              "en": "Lorem ensum..."
-            }
-        }
-
-+ Response 201 (application/hal+json)
-
-        {
-          "ok": true,
-          "inserted": {
-            "id": 13,
-            "correct": false,
-            "_links": {
-              "self": {
-                "href": "\/api\/answers\/13"
-              }
-            },
-            "_embedded": {
-              "text": {
-                "cs": "Lorem czsum...",
-                "en": "Lorem ensum..."
-              },
-              "question": {
-                "id": 1,
-                "type": "closed",
-                "shuffle_answers": true,
-                "number_of_answers": 4,
-                "multiple_correct": true,
-                "short_answer": true,
-                "_links": {
-                  "self": {
-                    "href": "\/api\/questions\/1"
-                  }
-                },
-                "_embedded": {
-                    "text": {
-                        "cs": "Odpoved 1",
-                        "en": "Answer 1"
-                    }
-                }
-              }
-            }
-          }
-        }
-
-## Question's Answers Collection [/api/questions/{question_id}/answers?limit={limit}&page={page}&sort={sort}]
-
-+ Parameters
-    + question_id (number, required) - Id of the Question which the Answers belong to.
-    + limit (number, optional) - Limits number of answers returned in the request
-    + page (number, optional) - Distance from beginning of the array of available answers
-    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
-
-### List Question's Answers [GET]
-
-Lists all Answers which belong to the given Question.
-
-+ Response 200 (application/hal+json)
-
-        {
-            "_embedded": {
-                "answers": [
-                    {
-                        "id": 1,
-                        "correct": true,
-                        "_links": {
-                            "self": {
-                                "href": "\/api\/answers\/1"
-                            }
-                        },
-                        "_embedded": {
-                            "text": {
-                                "cs": "Odpoved 1",
-                                "en": "Answer 1"
-                            }
-                        }
-                    },
-                    {
-                        "id": 2,
-                        "correct": false,
-                        "_links": {
-                            "self": {
-                                "href": "\/api\/answers\/2"
-                            }
-                        },
-                        "_embedded": {
-                            "text": {
-                                "cs": "Odpoved 2",
-                                "en": "Answer 2"
-                            }
-                        }
-                    }
-                ]
-            }
-        }
-
-## Answer [/api/answers/{id}]
-
-+ Attributes
-    + id (number, required) - The unique id of the Answer
-    + correct (boolean, required) - Is the answer correct? **Only displayed if you are superadmin!**
-    + embedded.question (object, required) - The Question to which the Answer belongs
-    + embedded.text (object, required) - Localized text of the answer
-
-+ Parameters
-    + id (number, required) - Answer's id
-
-### Retrieve an Answer [GET]
-    
-Retrieves Client with the given ID.
-
-+ Response 200 (application/hal+json)
-
-        {
-          "id": 1,
-          "correct": true,
-          "_links": {
-            "self": {
-              "href": "\/api\/answers\/1"
-            }
-          },
-          "_embedded": {
-            "text": {
-              "cs": "Odpoved 1",
-              "en": "Answer 1"
-            },
-            "question": {
-              "id": 1,
-              "type": "closed",
-              "shuffle_answers": true,
-              "number_of_answers": 4,
-              "multiple_correct": true,
-              "short_answer": true,
-              "_links": {
-                "self": {
-                  "href": "\/api\/questions\/1"
-                }
-              },
-              "_embedded": {
-                "text": {
-                    "cs": "Otazka 1",
-                    "en": "Question 1"
-                }
-              }
-            }
-          }
-        }
-
-### Update an Answer [PUT]
-
-Updates a Client with the given ID.
-
-+ Request (application/json)
-
-        {
-            "question": 1,
-            "correct": true,
-            "text": {
-              "cs": "Whatever cs...",
-              "en": "Whatever en..."
-            }
-        }
-
-+ Response 201 (application/hal+json)
-
-        {
-          "ok": true,
-          "updated": {
-            "id": 1,
-            "correct": true,
-            "_links": {
-              "self": {
-                "href": "\/api\/answers\/1"
-              }
-            },
-            "_embedded": {
-              "text": {
-                "en": "Whatever en...",
-                "cs": "Whatever cs..."
-              },
-              "question": {
-                "id": 1,
-                "type": "closed",
-                "shuffle_answers": true,
-                "number_of_answers": 4,
-                "multiple_correct": true,
-                "short_answer": true,
-                "_links": {
-                  "self": {
-                    "href": "\/api\/questions\/1"
-                  }
-                },
-                "_embedded": {
-                  "text": []
-                }
-              }
-            }
-          }
-        }
-
-
-### Hide an Answer [DELETE]
-
-Sets Answer as hidden.
-
-+ Response 200 (applicaiton/hal+json)
-
-        {
-            "ok": true
         }
 
 
