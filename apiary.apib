@@ -1,80 +1,4716 @@
 FORMAT: 1A
-HOST: http://polls.apiblueprint.org/
+HOST: http://gateway.dnajobs.cz/
 
-# Hiri - Testing API
+# Hiri Testing API
 
-Polls is a simple API allowing consumers to view polls and vote in them.
+Hiri Testing API provides Hiri Testing funcionality.
+Hiri API is split into 3 separate parts: General Api, Admin Api and Testing API.
 
-## Questions Collection [/questions]
+### API consumers
 
-### List All Questions [GET]
+API consumers are called "Clients" and they must be registered. Each client
+is given an id, name and secret key to access the API. The API can be accessed
+by using HTTP Basic Authentication with your username and secret.
 
-+ Response 200 (application/json)
+Each client is only served the data which belong to it. That means you
+can't access other client's resources.
 
-        [
-            {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 2048
-                    }, {
-                        "choice": "Python",
-                        "votes": 1024
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 512
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 256
-                    }
-                ]
-            }
-        ]
+### Data formats
 
-### Create a New Question [POST]
+#### Response formats
+Hiri API Gateway uses HATEOAS technology and its responses are in
+application/hal+json format.
+See http://stateless.co/hal_specification.html.
 
-You may create your own question using this action. It takes a JSON
-object containing a question and a collection of answers in the
-form of choices.
+#### Errors
+Any errors are described according to HTTP Problem draft, formatted as application/problem+json.
+See https://tools.ietf.org/html/draft-nottingham-http-problem-07.
+
+#### Dates
+All dates are served in ISO 8601 format in UTC timezone.
+ISO 8601 date formats in any timezone are accepted.
+
+
+# Group Cute Test Fills
+
+## Cute Test Fills Collection [/api/cute-test-fills]
+
+### Start a Cute Test for Candidate [POST]
+
+Starts a Cute Test Fill for signed in Candidate.
+
+**ProTip:** The Cute URL of the test is also provided in *Location* header of the HTTP response, so you don't have to parse the JSON.
 
 + Request (application/json)
 
-        {
-            "question": "Favourite programming language?",
-            "choices": [
-                "Swift",
-                "Python",
-                "Objective-C",
-                "Ruby"
-            ]
-        }
-
-+ Response 201 (application/json)
-
-    + Headers
-
-            Location: /questions/2
+    + Attributes
+        + cute_test (number, required) - Id of the Cute Test
+        + redirect_url (string, required) - Url to which the Candidate will be redirected upon completing the Cute Test.
+        + instrument_language (string, optional) - Id of the InstrumentLanguage to fil the Cute Test in. **Note:** Job's attribute 'canCandidateUseOtherCuteLanguages' must be true. If you don't fill this option, the CuteTest 'defaultInstrumentLanguage' will be used.
 
     + Body
 
             {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
+                "cute_test": 1,
+                "redirect_url": "http://www.example.com/",
+                "instrument_language": 1
+            }
+
++ Response 200 (application/problem+json)
+
+        {
+            "ok": true,
+            "inserted": {
+                "start": "2015-11-16T18:08:48+0100",
+                "redirect_url": "http:\/\/www.example.com\/",
+                "test_url": "http:\/\/www.cut-e.net\/maptq\/ws\/ws_req.aspx?reqid=C04A4153-DD9A-4C91-846B-2BC41F999186",
+                "id": 33,
+                "_embedded": {
+                    "completed": false,
+                    "state": "in_progress",
+                    "cute_test": {
+                        "id": 1,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/1"
+                            }
+                        },
+                        "_embedded": {
+                            "name": []
+                        }
+                    }
+                }
+            }
+        }
+
+
+## Candidate's Cute Test Fills Collection [/api/candidates/{candidate_id}/cute-test-fills]
+        
++ Parameters
+    + candidate_id (number, required) - Id of the Candidate. You can use 'me' to retrieve Candidate's Cute Test Fills for currently signed in Candidate.
+
+### List Candidate's Cute Test Fills [GET]
+
+Retrieves a list of Candidate's Cute Test Fills.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "cute_test_fills": [
                     {
-                        "choice": "Swift",
-                        "votes": 0
-                    }, {
-                        "choice": "Python",
-                        "votes": 0
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 0
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 0
+                        "id": 2,
+                        "_embedded": {
+                            "completed": false,
+                            "state": "not_started",
+                            "cute_test": {
+                                "id": 2,
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/cute-tests\/2"
+                                    }
+                                },
+                                "_embedded": {
+                                    "name": [],
+                                    "intro": [],
+                                    "result_type": "shapes"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "id": 1,
+                        "_embedded": {
+                            "completed": false,
+                            "state": "not_started",
+                            "cute_test": {
+                                "id": 1,
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/cute-tests\/1"
+                                    }
+                                },
+                                "_embedded": {
+                                    "name": [],
+                                    "intro": [],
+                                    "result_type": "shapes"
+                                }
+                            }
+                        }
                     }
                 ]
             }
+        }
+        
+## Cute Test Fill [/api/cute-test-fills/{id}]
+
++ Attributes
+    + id (number, required) - Id of the Cute Test Fill
+    + start (string, required) - Date when the fill was started
+    + end (string, optional) - Date when the fill was completed
+    + scoreNumber (string, optional) - Score of the test
+    + blocked (string, optional) - Date when the fill was blocked
+    + redirect_url (string, required) - URL to which Cut-e will redirect the user after finishing/closing the test
+    + test_url (string, required) - URL on which the user can fill the test and shall be redirected to after creating a Cute ll
+    + embedded.completed (boolean, required) - Was the fill completed?
+    + embedded.state (string, required) - State of the fill, can be `not_started`, `in_progress`, `blocked` or `completed`.
+    + `embedded.result_description` (string, optional) - If the test was completed, this parameter will be provided. It is a word description of the result. Can be `percentile`, `consistency_small`, `consistency_medium` and `consistency_high`.
+
++ Parameters
+    + id (number, required) - Id of the Cute Test Fill
+
+### Retrieve Cute Test Fill [GET]
+
+Retrieves a Cute Test Fill.
+
+**Side-effects:** If the fill is not finished yet, checks for its status at Cut-e API, which could time consuming.
+
++ Response 200 (application/hal+json)
+
+        {
+            "start": "2015-11-19T10:53:48+0100",
+            "end": "2015-11-19T11:03:54+0100",
+            "id": 12,
+            "redirect_url": "http:\/\/example.com\/",
+            "test_url": "http:\/\/www.cut-e.net\/maptq\/ws\/ws_req.aspx?reqid=81C26FA4-6A5E-4DEC-9A69-700A5B5BF4B5",
+            "_embedded": {
+                "completed": true,
+                "state": "blocked",
+                "cute_test": {
+                    "id": 5,
+                    "_links": {
+                        "self": {
+                            "href": "\/api\/cute-tests\/5"
+                        }
+                    },
+                    "_embedded": {
+                        "name": {
+                          "cs": "Cute Test 5",
+                          "en": "Cute Test 5"
+                        }
+                    }
+                }
+            }
+        }
+
+# Group Cute Test Fill Reports
+
+**Important:** To retrieve a report on a Cute Test Fill, you must first create Cute Test Fill Report entity. This step is
+**paid**. Once created, the report can be accessed by retrieving Cute Test Fill Report and visiting the url. Also,
+the creating step provides safety precaution so a report is not created by accidend while using *HTTP GET method* (e.g. by indexing engines).
+
+## Cute Test Fill Reports Collection [/api/cute-test-fill-reports?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of Cute Tests returned in the request
+    + page (number, optional) - Distance from beginning of the array of available Cute Tests
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### Create a Cute Test Fill Report [POST]
+
+Creates a Cute Test Fill Report for the given Cute Test Fill and an Instrument Report with your return url.
+
++ Request (application/json)
+
+        {
+            "cute_test_fill": 1,
+            "instrument_report": 1,
+            "return_url": "http://www.example.com"
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+            "ok": true,
+            "inserted": {
+                "id": 2,
+                "return_url": "http:\/\/www.example.com",
+                "test_url": "http:\/\/www.cut-e.net\/maptq\/ws\/ws_req.aspx?reqid=5A13F476-A52B-46B3-B2EF-F0BCC95D5424",
+                "created": "2015-11-25T17:56:12+0100",
+                "_links": {
+                    "self": {
+                        "href": "\/api\/cute-test-fills\/2"
+                    },
+                    "cute_test_fill": {
+                        "href": "\/api\/cute-test-fills\/1"
+                    },
+                    "instrument_report": {
+                        "href": "InstrumentReports:read"
+                    }
+                },
+                "_embedded": {
+                    "cute_test_fill": {
+                        "start": "2015-11-25T17:46:11+0100",
+                        "id": 1,
+                        "redirect_url": "http:\/\/example.com\/",
+                        "test_url": "http:\/\/www.cut-e.net\/maptq\/ws\/ws_req.aspx?reqid=81C26FA4-6A5E-4DEC-9A69-700A5B5BF4B5",
+                        "_embedded": {
+                            "completed": false,
+                            "state": "in_progress",
+                            "result_description": "consistency_high",
+                            "cute_test": {
+                                "id": 1,
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/cute-tests\/1"
+                                    }
+                                },
+                                "_embedded": {
+                                    "name": []
+                                }
+                            }
+                        }
+                    },
+                    "instrument_report": {
+                        "id": 1,
+                        "name": "default"
+                    }
+                }
+            }
+        }
+
+## Cute Test Fill Report [/api/cute-test-fill-reports/{id}]
+
++ Attributes
+    + id (number, required) - Unique identifier of the Cute Test Fill Report.
+    + url (string, required) - URL of the cut-e report. You can get the report by visiting this url.
+    + return_url (string, required) - URL used by cut-e when generating the report.
+
++ Parameters
+    + id (number, required) - Id of the Cute Test Fill Report.
+
+### Retrieve Cute Test Fill Report [GET]
+
+Retrieves a Cute Test Fill Report with the given id.
+
++ Response 200 (application/hal+json)
+
+        {
+            "id": 1,
+            "return_url": "http:\/\/example.com",
+            "test_url": "http:\/\/example.com",
+            "created": "2015-11-25T17:56:02+0100",
+            "_links": {
+                "self": {
+                    "href": "\/api\/cute-test-fills\/1"
+                },
+                "cute_test_fill": {
+                    "href": "\/api\/cute-test-fills\/1"
+                },
+                "instrument_report": {
+                    "href": "InstrumentReports:read"
+                }
+            },
+            "_embedded": {
+                "cute_test_fill": {
+                    "start": "2015-11-25T17:46:01+0100",
+                    "id": 1,
+                    "redirect_url": "http:\/\/example.com\/",
+                    "test_url": "http:\/\/www.cut-e.net\/maptq\/ws\/ws_req.aspx?reqid=81C26FA4-6A5E-4DEC-9A69-700A5B5BF4B5",
+                    "_embedded": {
+                        "completed": false,
+                        "state": "in_progress",
+                        "result_description": "consistency_high",
+                        "cute_test": {
+                            "id": 1,
+                            "_links": {
+                                "self": {
+                                    "href": "\/api\/cute-tests\/1"
+                                }
+                            },
+                            "_embedded": {
+                                "name": []
+                            }
+                        }
+                    }
+                },
+                "instrument_report": {
+                    "id": 1,
+                    "name": "default"
+                }
+            }
+        }
+
+
+# Group Cute Tests
+
+## Cute Tests Collection [/api/cute-tests?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of Cute Tests returned in the request
+    + page (number, optional) - Distance from beginning of the array of available Cute Tests
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Cute Tests [GET]
+
+Retrieves a list of all Cute Tests. Only Cute Tests belonging to your Client will be listed.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "cute_tests": [
+                    {
+                        "id": 1,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/1"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Logické myšlení",
+                                "en": "Logical thinking"
+                            },
+                            "intro": {
+                                "en": "Lorem ipsum...",
+                                "cs": "Lorem ipsum..."
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/2"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Měření kompetencí",
+                                "en": "Competencies"
+                            },
+                            "intro": {
+                                "en": "Lorem ipsum...",
+                                "cs": "Lorem ipsum..."
+                            }
+                        }
+                    },
+                    {
+                        "id": 3,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/3"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Deduktivně-logické myšlení",
+                                "en": "Deductively-logical thinking"
+                            },
+                            "intro": {
+                                "en": "Lorem ipsum...",
+                                "cs": "Lorem ipsum..."
+                            }
+                        }
+                    },
+                    {
+                        "id": 4,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/4"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Měření motivačních faktorů",
+                                "en": "Measurement of motivational factors"
+                            },
+                            "intro": {
+                                "en": "Lorem ipsum...",
+                                "cs": "Lorem ipsum..."
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+### Create a Cute Test [POST]
+
++ Request (application/json)
+
+    + Attributes
+        + name (object, required) - Localized name of the Cute Test
+        + intro (object, required) - Localized intro of the Cute Test. The intro is displayed to the Candidate before starting Cute Test Fill.
+        + short_name (object, required) - Localized short name of the Cute Test.
+        + instrument (number, required) - Id of the Cute Instrument
+        + instrument_normset (number, required) - Id of the Instrument Normset
+        + default_instrument_language (number, required) - Id of the default instrument language
+        + logo (string, required) - URL of the Cute Test logo
+        + average_fill_time (string, optional) - Average fill time of the Cute Test.
+
+    + Body
+
+            {
+                "name": {
+                  "cs": "Lorem czpsum...",
+                  "en": "Lorem enpsum..."
+                },
+                "short_name": {
+                  "cs": "Lorem shortum...",
+                  "en": "Lorem shortum..."
+                },
+                "intro": {
+                  "cs": "Lorem czpsum...",
+                  "en": "Lorem enpsum..."
+                },
+                "instrument": 1,
+                "instrument_normset": 1,
+                "default_instrument_language": 1,
+                "logo": "http://example.com/logo/1.jpg",
+                "average_fill_time": "120"
+            }
+
++ Response 201 (application/hal+json)
+
+        {
+            "ok": true,
+            "inserted": {
+                "logo": "http:\/\/example.com\/logo\/1.jpg",
+                "id": 1,
+                "_links": {
+                    "self": {
+                        "href": "\/api\/cute-tests\/1"
+                    }
+                },
+                "_embedded": {
+                    "name": {
+                        "cs": "Lorem czpsum...",
+                        "en": "Lorem enpsum..."
+                    },
+                    "intro": {
+                        "cs": "Lorem czpsum...",
+                        "en": "Lorem enpsum..."
+                    },
+                    "result_type": "shapes",
+                    "instrument": {
+                        "id": 1,
+                        "cute_id": 102,
+                        "type": "oi",
+                        "result_type": "shapes",
+                        "languages": [
+                            {
+                                "id": 1,
+                                "cute_id": 14,
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/instrument-languages\/1"
+                                    }
+                                }
+                            }
+                        ],
+                        "reports": [],
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/instruments\/1"
+                            }
+                        }
+                    },
+                    "default_instrument_language": {
+                        "id": 1,
+                        "cute_id": 14,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/instrument-languages\/1"
+                            }
+                        }
+                    },
+                    "instrument_normset": {
+                        "id": 1,
+                        "cute_id": 14,
+                        "name": "default",
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/instrument-normsets\/1"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    
+
+## Job's Cute Tests Collection [/api/jobs/{job_id}/cute-tests?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + job_id (number, required) - Id of the Job
+    + limit (number, optional) - Limits number of Cute Tests returned in the request
+    + page (number, optional) - Distance from beginning of the array of available Cute Tests
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+    
+### List Job's Cute Tests [GET]
+
+Retrieves a list of all Tests belonging to the given Job.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "cute_tests": [
+                    {
+                        "id": 1,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/1"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Logické myšlení",
+                                "en": "Logical thinking"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/2"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Měření kompetencí",
+                                "en": "Competencies"
+                            }
+                        }
+                    },
+                    {
+                        "id": 3,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/3"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Deduktivně-logické myšlení",
+                                "en": "Deductively-logical thinking"
+                            }
+                        }
+                    },
+                    {
+                        "id": 4,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/4"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Měření motivačních faktorů",
+                                "en": "Measurement of motivational factors"
+                            },
+                            "intro": {
+                                "en": "Lorem ipsum...",
+                                "cs": "Lorem ipsum..."
+                            }
+                        }
+                    },
+                    {
+                        "id": 5,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/5"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Cute Test 5",
+                                "en": "Cute Test 5"
+                            },
+                            "intro": {
+                                "en": "Lorem ipsum...",
+                                "cs": "Lorem ipsum..."
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+## Company's Cute Tests Collection [/api/companies/{company_id}/cute-tests?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + company_id (number, required) - Id of the Company
+    + limit (number, optional) - Limits number of Cute Tests returned in the request
+    + page (number, optional) - Distance from beginning of the array of available Cute Tests
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Company's Cute Tests [GET]
+
+Retrieves a list of all Tests belonging to the given Job.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "cute_tests": [
+                    {
+                        "id": 1,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/1"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Logické myšlení",
+                                "en": "Logical thinking"
+                            },
+                            "short_name": {
+                              "cs": "Lorem shortum...",
+                              "en": "Lorem shortum..."
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/2"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Měření kompetencí",
+                                "en": "Competencies"
+                            },
+                            "short_name": {
+                              "cs": "Lorem shortum...",
+                              "en": "Lorem shortum..."
+                            }
+                        }
+                    },
+                    {
+                        "id": 3,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/3"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Deduktivně-logické myšlení",
+                                "en": "Deductively-logical thinking"
+                            },
+                            "short_name": {
+                              "cs": "Lorem shortum...",
+                              "en": "Lorem shortum..."
+                            }
+                        }
+                    },
+                    {
+                        "id": 4,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/cute-tests\/4"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Měření motivačních faktorů",
+                                "en": "Measurement of motivational factors"
+                            },
+                            "intro": {
+                                "en": "Lorem ipsum...",
+                                "cs": "Lorem ipsum..."
+                            },
+                            "short_name": {
+                              "cs": "Lorem shortum...",
+                              "en": "Lorem shortum..."
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+
+## Cute Test [/api/cute-tests/{id}]
+
++ Attributes
+    + id (number, required) - Id of the Cute Test
+    + logo (string, optional) - Static URL of the Cute Test logo image.
+    + embedded.name (string, required) - Localized name of the Cute Test
+    + embedded.short_name (string, required) - Short name of the text
+    + embedded.intro (string, required) - Localized introduction to the Cute Test that will be displayed to the Candidate before starting the test.
+    + embedded.instrument (object, required) - Instrument linked to the Cute Test.
+    + embedded.default_instrument_language (object, optional) - Default Instrument Language for the Cute Test.
+    + embedded.instrument_normset (object, optional) - InstrumentNormset linked to the CuteTest.
+    + embedded.job_categories (array, optional) - Array of JobCategories
+    + embedded.user_education_levels (array, optional) - Array of UserEducationLevelste 
+
++ Parameters
+    + id (number, required) - Id of the Cute Test
+    
+### Retrieve a Cute Test [GET]
+
++ Response 200 (application/hal+json)
+
+        {
+            "id": 1,
+            "_links": {
+                "self": {
+                    "href": "\/api\/cute-tests\/1"
+                }
+            },
+            "_embedded": {
+                "name": {
+                    "cs": "Test logického myšlení",
+                    "en": "Logical thinking"
+                },
+                "short_name": {
+                  "cs": "Lorem shortum...",
+                  "en": "Lorem shortum..."
+                },
+                "intro": {
+                    "cs": "Lorem ipsum dolor sit amet...",
+                    "en": "Lorem ipsum dolor sit amet..."
+                },
+                "result_type": "shapes",
+                "instrument": {
+                    "id": 1,
+                    "cute_id": 102,
+                    "type": "oi",
+                    "result_type": "shapes",
+                    "languages": [
+                        {
+                            "id": 1,
+                            "cute_id": 14,
+                            "_links": {
+                                "self": {
+                                    "href": "\/api\/instrument-languages\/1"
+                                }
+                            }
+                        }
+                    ],
+                    "reports": [],
+                    "_links": {
+                        "self": {
+                            "href": "\/api\/instruments\/1"
+                        }
+                    }
+                },
+                "default_instrument_language": {
+                    "id": 1,
+                    "cute_id": 14,
+                    "_links": {
+                        "self": {
+                            "href": "\/api\/instrument-languages\/1"
+                        }
+                    }
+                },
+                "instrument_normset": {
+                    "id": 1,
+                    "cute_id": 14,
+                    "name": "default",
+                    "_links": {
+                        "self": {
+                            "href": "\/api\/instrument-normsets\/1"
+                        }
+                    }
+                }
+            }
+        }
+
+### Update a Cute Test [PUT]
+
++ Request (application/json)
+
+    + Attributes
+        + name (object, optional) - Localized name of the Cute Test
+        + intro (object, optional) - Localized intro of the Cute Test. The intro is displayed to the Candidate before starting Cute Test Fill.
+        + short_name (object, required) - Localized short name of the Cute Test.
+        + instrument (number, optional) - Id of the Cute Instrument
+        + instrument_normset (number, optional) - Id of the Instrument Normset
+        + default_instrument_language (number, optional) - Id of the default instrument language
+        + logo (string, optional) - URL of the Cute Test logo
+        + average_fill_time (string, optional) - Average fill time of the Cute Test.
+
+    + Body
+
+            {
+                "name": {
+                  "cs": "Lorem czpsum...",
+                  "en": "Lorem enpsum..."
+                },
+                "short_name": {
+                  "cs": "Lorem shortum...",
+                  "en": "Lorem shortum..."
+                },
+                "intro": {
+                  "cs": "Lorem czpsum...",
+                  "en": "Lorem enpsum..."
+                },
+                "instrument": 1,
+                "instrument_normset": 1,
+                "default_instrument_language": 1,
+                "logo": "http://example.com/logo/1.jpg",
+                "average_fill_time": "1 minute"
+            }
+
++ Response 200 (application/hal+json)
+
+        {
+            "ok": true,
+            "updated": {
+                "logo": "http:\/\/example.com\/logo\/1.jpg",
+                "id": 1,
+                "_links": {
+                    "self": {
+                        "href": "\/api\/cute-tests\/1"
+                    }
+                },
+                "_embedded": {
+                    "name": {
+                        "en": "Lorem enpsum...",
+                        "cs": "Lorem czpsum..."
+                    },
+                    "intro": {
+                        "en": "Lorem enpsum...",
+                        "cs": "Lorem czpsum..."
+                    },
+                    "result_type": "shapes",
+                    "instrument": {
+                        "id": 1,
+                        "cute_id": 102,
+                        "type": "oi",
+                        "result_type": "shapes",
+                        "languages": [
+                            {
+                                "id": 1,
+                                "cute_id": 14,
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/instrument-languages\/1"
+                                    }
+                                }
+                            }
+                        ],
+                        "reports": [],
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/instruments\/1"
+                            }
+                        }
+                    },
+                    "default_instrument_language": {
+                        "id": 1,
+                        "cute_id": 14,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/instrument-languages\/1"
+                            }
+                        }
+                    },
+                    "instrument_normset": {
+                        "id": 1,
+                        "cute_id": 14,
+                        "name": "default",
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/instrument-normsets\/1"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+# Group Instruments
+
+## Instruments Collection [/api/instruments?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of clients returned in the request
+    + page (number, optional) - Distance from beginning of the array of available clients
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Instruments [GET]
+
+Retrieves all Instruments with their categories.
+
++ Response 200 (application/hal+json)
+
+        {
+          "_embedded": {
+            "instruments": [
+              {
+                "id": 1,
+                "cute_id": 102,
+                "type": "oi",
+                "result_type": "shapes",
+                "languages": [],
+                "reports": [],
+                "_links": {
+                  "self": {
+                    "href": "\/api\/instruments\/1"
+                  }
+                }
+              },
+              {
+                "id": 2,
+                "cute_id": 102,
+                "type": "oi",
+                "result_type": "shapes",
+                "languages": [],
+                "reports": [],
+                "_links": {
+                  "self": {
+                    "href": "\/api\/instruments\/2"
+                  }
+                }
+              }
+            ]
+          }
+        }
+
+### Create an Instrument [POST]
+
+Creates an Instrument with given parameters.
+
++ Request (application/json)
+
+        {
+            "cute_id": 103,
+            "type": "oi",
+            "result_type": "consistency"
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "inserted": {
+            "id": 1,
+            "cute_id": 103,
+            "type": "oi",
+            "result_type": "consistency",
+            "languages": [],
+            "reports": [],
+            "_links": {
+              "self": {
+                "href": "\/api\/instruments\/1"
+              }
+            }
+          }
+        }
+        
+## Instrument [/api/instruments/{id}]
+
++ Attributes
+    + id (number, required) - The unique id of the Instrument
+    + cute_id (number, required) - The Cut-e id of the Instrument
+    + type (string, required) - The Cut-e type of the Instrument. Can only be 'oi' for now.
+    + result_type (string, required) - Result type of the Instrument. Can be 'percentile' or 'consistency'.
+    + embedded.instrument_languages (array, required) - Available Instrument Languages for the Instrument.
+    + embedded.instrument_reports (array, required) - Availabe Instrument Reports for the Instrument.
+
++ Parameters
+    + id (number, required) - Instrument's id
+
+### Retrieve an Instrument [GET]
+
+Retrieves an Instrument with the given ID.
+
++ Response 200 (application/hal+json)
+
+        {
+          "id": 1,
+          "cute_id": 102,
+          "type": "oi",
+          "result_type": "shapes",
+          "languages": [],
+          "reports": [],
+          "_links": {
+            "self": {
+              "href": "\/api\/instruments\/1"
+            }
+          }
+        }
+
+### Update an Instrument [PUT]
+
+Updates an Instrument with the given ID.
+
++ Request (application/json)
+
+        {
+            "cute_id": 103,
+            "type": "oi",
+            "result_type": "consistency"
+        }
+        
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "updated": {
+            "id": 1,
+            "cute_id": 103,
+            "type": "oi",
+            "result_type": "consistency",
+            "languages": [],
+            "reports": [],
+            "_links": {
+              "self": {
+                "href": "\/api\/instruments\/1"
+              }
+            }
+          }
+        }
+
+# Group Instrument Languages
+
+## Instrument Languages Collection [/api/instrument-languages?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of candidates returned in the request
+    + page (number, optional) - Distance from beginning of the array of available candidates
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is “<property1 ASC,column+DESC”
+
+### List Instrument Languages [GET]
+
+List all Instrument Languages.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "instrument_languages": [
+                    {
+                        "id": 1,
+                        "cute_id": 14,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/instrument-languages\/1"
+                            }
+                    }
+                },
+                    {
+                        "id": 2,
+                        "cute_id": 2,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/instrument-languages\/2"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+### Create an Instrument Language [POST]
+
+Creates an Instrument Language with given parameters.
+
++ Request (application/json)
+
+        {
+            "cute_id": 14,
+            "language": "cs",
+            "instrument": 1
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "inserted": {
+            "id": 1,
+            "cute_id": 14,
+            "_links": {
+              "self": {
+                "href": "\/api\/instrument-languages\/1"
+              }
+            },
+            "_embedded": {
+              "language": {
+                "id": "cs",
+                "_links": {
+                  "self": {
+                    "href": "\/api\/languages\/cs"
+                  }
+                }
+              },
+              "instrument": {
+                "id": 1,
+                "cute_id": 102,
+                "type": "oi",
+                "result_type": "shapes",
+                "languages": [
+                  {
+                    "id": 1,
+                    "cute_id": 14,
+                    "_links": {
+                      "self": {
+                        "href": "\/api\/instrument-languages\/1"
+                      }
+                    },
+                    "_embedded": {
+                      "language": {
+                        "id": "cs",
+                        "_links": {
+                          "self": {
+                            "href": "\/api\/languages\/cs"
+                          }
+                        }
+                      },
+                      "instrument": null
+                    }
+                  }
+                ],
+                "reports": [],
+                "_links": {
+                  "self": {
+                    "href": "\/api\/instruments\/1"
+                  }
+                }
+              }
+            }
+          }
+        }
+
+## Instrument's Instrument Languages Collection [/api/instrument/{instrument_id}/instrument-languages?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of candidates returned in the request
+    + page (number, optional) - Distance from beginning of the array of available candidates
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is “<property1 ASC,column+DESC”
+    + instrument_id (number, optional) - ID of the Instrument.
+
+### List Instrument's Instrument Languages [GET]
+
+Lists all Instrument Languages belonging to the given Instrument.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "instrument_languages": [
+                    {
+                        "id": 2,
+                        "cute_id": 2,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/instrument-languages\/2"
+                            }
+                        }
+                    },
+                    {
+                        "id": 1,
+                        "cute_id": 14,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/instrument-languages\/1"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+## Instrument Language [/api/instrument-languages/{id}]
+
++ Attributes
+
++ Parameters
+    + id (number, required) - Instrument Language's id
+
+### Retrieve an Instrument Language [GET]
+
+Retrieves an Instrument Language with the given ID.
+
++ Response 200 (application/hal+json)
+
+        {
+          "id": 1,
+          "cute_id": 14,
+          "_links": {
+            "self": {
+              "href": "\/api\/instrument-languages\/1"
+            }
+          },
+          "_embedded": {
+            "language": {
+              "id": "cs",
+              "_links": {
+                "self": {
+                  "href": "\/api\/languages\/cs"
+                }
+              }
+            },
+            "instrument": {
+              "id": 1,
+              "cute_id": 102,
+              "type": "oi",
+              "result_type": "shapes",
+              "languages": [
+                {
+                  "id": 1,
+                  "cute_id": 14,
+                  "_links": {
+                    "self": {
+                      "href": "\/api\/instrument-languages\/1"
+                    }
+                  },
+                  "_embedded": {
+                    "language": {
+                      "id": "cs",
+                      "_links": {
+                        "self": {
+                          "href": "\/api\/languages\/cs"
+                        }
+                      }
+                    },
+                    "instrument": null
+                  }
+                }
+              ],
+              "reports": [],
+              "_links": {
+                "self": {
+                  "href": "\/api\/instruments\/1"
+                }
+              }
+            }
+          }
+        }
+
+### Update an Instrument Language [PUT]
+
+Updates an Instrument Language with the given ID.
+
++ Request (application/json)
+
+        {
+            "cute_id": 2,
+            "language": "en",
+            "instrument": 2
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "updated": {
+            "id": 1,
+            "cute_id": 2,
+            "_links": {
+              "self": {
+                "href": "\/api\/instrument-languages\/1"
+              }
+            },
+            "_embedded": {
+              "language": {
+                "id": "en",
+                "_links": {
+                  "self": {
+                    "href": "\/api\/languages\/en"
+                  }
+                }
+              },
+              "instrument": {
+                "id": 2,
+                "cute_id": 102,
+                "type": "oi",
+                "result_type": "shapes",
+                "languages": [
+                  {
+                    "id": 1,
+                    "cute_id": 2,
+                    "_links": {
+                      "self": {
+                        "href": "\/api\/instrument-languages\/1"
+                      }
+                    },
+                    "_embedded": {
+                      "language": {
+                        "id": "en",
+                        "_links": {
+                          "self": {
+                            "href": "\/api\/languages\/en"
+                          }
+                        }
+                      },
+                      "instrument": null
+                    }
+                  }
+                ],
+                "reports": [],
+                "_links": {
+                  "self": {
+                    "href": "\/api\/instruments\/2"
+                  }
+                }
+              }
+            }
+          }
+        }
+
+# Group Instrument Normsets
+
+## Instrument Normsets Collection [/api/instrument-normsets?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of candidates returned in the request
+    + page (number, optional) - Distance from beginning of the array of available candidates
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is “<property1+ASC,column+DESC”
+
+### List Instrument Normsets [GET]
+
+List all Instrument Normsets.
+
++ Response 200 (application/hal+json)
+
+        {
+          "_embedded": {
+            "instrument_normsets": [
+              {
+                "id": 1,
+                "cute_id": 14,
+                "name": "default",
+                "_links": {
+                  "self": {
+                    "href": "\/api\/instrument-normsets\/1"
+                  }
+                }
+              },
+              {
+                "id": 2,
+                "cute_id": 1000,
+                "name": "default",
+                "_links": {
+                  "self": {
+                    "href": "\/api\/instrument-normsets\/2"
+                  }
+                }
+              }
+            ]
+          }
+        }
+
+### Create an Instrument Normset [POST]
+
+Creates an Instrument Normset with given parameters.
+
++ Request (application/json)
+
+        {
+            "cute_id": 14,
+            "name": "All people in Czech Republic"
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "inserted": {
+            "id": 2,
+            "cute_id": 14,
+            "name": "All people in Czech Republic",
+            "_links": {
+              "self": {
+                "href": "\/api\/instrument-normsets\/2"
+              }
+            }
+          }
+        }
+
+## Instrument Normset [/api/instrument-normsets/{id}]
+
++ Attributes
+
++ Parameters
+    + id (number, required) - Instrument Normset's id
+
+### Retrieve an Instrument Normset [GET]
+
+Retrieves an Instrument Normset with the given ID.
+
++ Response 200 (application/hal+json)
+
+        {
+          "id": 1,
+          "cute_id": 14,
+          "name": "default",
+          "_links": {
+            "self": {
+              "href": "\/api\/instrument-normsets\/1"
+            }
+          }
+        }
+
+### Update an Instrument Normset [PUT]
+
+Updates an Instrument Normset with the given ID.
+
++ Request (application/json)
+
+        {
+            "cute_id": 1000,
+            "name": "All people"
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "updated": {
+            "id": 1,
+            "cute_id": 1000,
+            "name": "All people",
+            "_links": {
+              "self": {
+                "href": "\/api\/instrument-normsets\/1"
+              }
+            }
+          }
+        }
+
+# Group Instrument Reports
+
+## Instrument Reports Collection [/api/instrument-reports?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of candidates returned in the request
+    + page (number, optional) - Distance from beginning of the array of available candidates
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is “<property1+ASC,column+DESC”
+
+### List Instrument Reports [GET]
+
+List all Instrument Reports.
+
++ Response 200 (application/hal+json)
+
+        {
+          "_embedded": {
+            "instrument_reports": [
+              {
+                "id": 1,
+                "cute_id": 102009,
+                "name": "default",
+                "type": "reph",
+                "_links": {
+                  "self": {
+                    "href": "\/api\/instrument-reports\/1"
+                  }
+                }
+              },
+              {
+                "id": 2,
+                "cute_id": 102009,
+                "name": "default",
+                "type": "reph",
+                "_links": {
+                  "self": {
+                    "href": "\/api\/instrument-reports\/2"
+                  }
+                }
+              }
+            ]
+          }
+        }
+
+### Create an Instrument Report [POST]
+
+Creates an Instrument Report with given parameters.
+
++ Request (application/json)
+
+        {
+            "cute_id": 123,
+            "name": "Motivation - PDF report",
+            "type": "rep",
+            "instrument": 1
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "inserted": {
+            "id": 4,
+            "cute_id": 123,
+            "name": "Motivation - PDF report",
+            "type": "rep",
+            "_links": {
+              "self": {
+                "href": "\/api\/instrument-reports\/4"
+              }
+            },
+            "_embedded": {
+              "instrument": {
+                "id": 1,
+                "cute_id": 102,
+                "type": "oi",
+                "result_type": "shapes",
+                "languages": [],
+                "reports": [
+                  {
+                    "id": 4,
+                    "cute_id": 123,
+                    "name": "Motivation - PDF report",
+                    "type": "rep",
+                    "_links": {
+                      "self": {
+                        "href": "\/api\/instrument-reports\/4"
+                      }
+                    },
+                    "_embedded": {
+                      "instrument": null
+                    }
+                  }
+                ],
+                "_links": {
+                  "self": {
+                    "href": "\/api\/instruments\/1"
+                  }
+                }
+              }
+            }
+          }
+        }
+
+## Instrument Report [/api/instrument-reports/{id}]
+
++ Attributes
+
++ Parameters
+    + id (number, required) - Instrument Report's id
+
+### Retrieve an Instrument Report [GET]
+
+Retrieves an Instrument Report with the given ID.
+
++ Response 200 (application/hal+json)
+
+        {
+          "id": 1,
+          "cute_id": 102009,
+          "name": "default",
+          "type": "rep",
+          "_links": {
+            "self": {
+              "href": "\/api\/instrument-reports\/1"
+            }
+          },
+          "_embedded": {
+            "instrument": {
+              "id": 1,
+              "cute_id": 102,
+              "type": "oi",
+              "result_type": "shapes",
+              "languages": [],
+              "reports": [
+                {
+                  "id": 1,
+                  "cute_id": 102009,
+                  "name": "default",
+                  "type": "rep",
+                  "_links": {
+                    "self": {
+                      "href": "\/api\/instrument-reports\/1"
+                    }
+                  },
+                  "_embedded": {
+                    "instrument": null
+                  }
+                }
+              ],
+              "_links": {
+                "self": {
+                  "href": "\/api\/instruments\/1"
+                }
+              }
+            }
+          }
+        }
+
+### Update an Instrument Report [PUT]
+
+Updates an Instrument Report with the given ID.
+
++ Request (application/json)
+
+        {
+            "cute_id": 123,
+            "name": "Motivations - HTML report",
+            "type": "reph"
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "updated": {
+            "id": 1,
+            "cute_id": 123,
+            "name": "Motivations - HTML report",
+            "type": "reph",
+            "_links": {
+              "self": {
+                "href": "\/api\/instrument-reports\/1"
+              }
+            },
+            "_embedded": {
+              "instrument": {
+                "id": 1,
+                "cute_id": 102,
+                "type": "oi",
+                "result_type": "shapes",
+                "languages": [],
+                "reports": [
+                  {
+                    "id": 1,
+                    "cute_id": 123,
+                    "name": "Motivations - HTML report",
+                    "type": "reph",
+                    "_links": {
+                      "self": {
+                        "href": "\/api\/instrument-reports\/1"
+                      }
+                    },
+                    "_embedded": {
+                      "instrument": null
+                    }
+                  }
+                ],
+                "_links": {
+                  "self": {
+                    "href": "\/api\/instruments\/1"
+                  }
+                }
+              }
+            }
+          }
+        }
+
+
+# Group Knowledge Tests
+
+## Knowledge Tests Collection [/api/tests?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of Tests returned in the request
+    + page (number, optional) - Distance from beginning of the array of available Tests
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+    
+### List Tests [GET]
+
+Retrieves a list of all Users. Only users belonging to your Client will be listed.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "tests": [
+                    {
+                        "id": 1,
+                        "type": "one-page",
+                        "number_of_questions": 4,
+                        "maximum_time": 300,
+                        "logo": "http://example.com/test/1.jpg",
+                        "shuffle_questions": true,
+                        "_embedded": {
+                            "average_fill_time": 250,
+                            "questions_count": 10,
+                            "name": {
+                                "cs": "Znalostní test",
+                                "en": "Knowledge test"
+                            },
+                            "intro": {
+                                "cs": "Lorem Ipsum...",
+                                "en": "Lorem Ipsum..."
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "type": "one-page",
+                        "number_of_questions": 4,
+                        "maximum_time": 1900,
+                        "logo": "http://example.com/test/2.jpg",
+                        "shuffle_questions": true,
+                        "_embedded": {
+                            "average_fill_time": 1575,
+                            "questions_count": 20,
+                            "name": {
+                                "cs": "HTML",
+                                "en": "HTML"
+                            },
+                            "intro": {
+                                "cs": "Lorem Ipsum...",
+                                "en": "Lorem Ipsum..."
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+### Create a Knowledge Test [POST]
+
+Creates a Knowledge Test.
+
++ Request (application/json)
+
+    + Body
+
+            {
+                "name": {
+                  "cs": "Lorem czpsum...",
+                  "en": "Lorem enpsum..."
+                },
+                "intro": {
+                  "cs": "Lorem czpsum...",
+                  "en": "Lorem enpsum..."
+                },
+                "type": "question-per-page",
+                "number_of_questions": 3,
+                "shuffle_questions": true,
+                "maximum_time": 100,
+                "logo": "http://example.com/logo/1.jpg"
+            }
+
++ Response 201 (application/hal+json)
+
+        {
+            "ok": true,
+            "inserted": {
+                "id": 1,
+                "type": "question-per-page",
+                "number_of_questions": 3,
+                "maximum_time": 100,
+                "shuffle_questions": true,
+                "logo": "http:\/\/example.com\/logo\/1.jpg",
+                "shuffle_questions": true,
+                "_links": {
+                    "self": {
+                        "href": "\/api\/tests\/1"
+                    }
+                },
+                "_embedded": {
+                    "name": {
+                        "cs": "Lorem czpsum...",
+                        "en": "Lorem enpsum..."
+                    },
+                    "intro": {
+                        "cs": "Lorem czpsum...",
+                        "en": "Lorem enpsum..."
+                    },
+                    "average_fill_time": null,
+                    "questions_count": 0
+                }
+            }
+        }
+
+
+## Job's Knowledge Tests Collection [/api/jobs/{job_id}/tests?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + job_id (number, required) - Id of the Job
+    + limit (number, optional) - Limits number of Tests returned in the request
+    + page (number, optional) - Distance from beginning of the array of available Tests
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+    
+### List Job's Tests [GET]
+
+Retrieves a list of all Tests belonging to the given Job.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "tests": [
+                    {
+                        "id": 1,
+                        "type": "one-page",
+                        "number_of_questions": 4,
+                        "maximum_time": 300,
+                        "logo": "http://localhost:8080/images/test-placeholders/placeholder_testu1.svg",
+                        "shuffle_questions": true,
+                        "_embedded": {
+                            "average_fill_time": 250,
+                            "questions_count": 10,
+                            "name": {
+                                "cs": "Znalostní test",
+                                "en": "Knowledge test"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "type": "one-page",
+                        "number_of_questions": 4,
+                        "maximum_time": 1900,
+                        "logo": "http://localhost:8080/images/test-placeholders/placeholder_testu2.svg",
+                        "shuffle_questions": true,
+                        "_embedded": {
+                            "average_fill_time": 1575,
+                            "questions_count": 20,
+                            "name": {
+                                "cs": "HTML",
+                                "en": "HTML"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+
+## Company's Knowledge Tests Collection [/api/companies/{company_id}/tests?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + company_id (number, required) - Id of the Company
+    + limit (number, optional) - Limits number of Tests returned in the request
+    + page (number, optional) - Distance from beginning of the array of available Tests
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+    
+### List Company's Tests [GET]
+
+Retrieves a list of all Tests belonging to the given Company.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "tests": [
+                    {
+                        "id": 1,
+                        "type": "question-per-page",
+                        "number_of_questions": 4,
+                        "maximum_time": 300,
+                        "logo": "http://example.com/test/1.jpg",
+                        "shuffle_questions": true,
+                        "_embedded": {
+                            "average_fill_time": 250,
+                            "questions_count": 10,
+                            "name": {
+                                "cs": "Znalostní test",
+                                "en": "Knowledge test"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "type": "question-per-page",
+                        "number_of_questions": 4,
+                        "maximum_time": 1900,
+                        "logo": "http://example.com/test/2.jpg",
+                        "shuffle_questions": true,
+                        "_embedded": {
+                            "average_fill_time": 1575,
+                            "questions_count": 20,
+                            "name": {
+                                "cs": "HTML",
+                                "en": "HTML"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+## Knowledge Test [/api/tests/{id}]
+
++ Attributes
+    + id (number, required) - Id of the Knowledge Test
+    + type (string, required) - Type of the Knowledge Test, can be "one-page" or "question-per-page"
+    + number_of_questions (number, required) - Number of questions per test instance
+    + maximum_time (number, required) - Maximum time for the test in seconds
+    + embedded.name (string, required) - Localized name of the Test
+    + embedded.average_fill_time (number, required) - Average time for a TestFill
+    + embedded.job_categories (array, optional) - Array of JobCategories
+    + embedded.user_education_levels (array, optional) - Array of UserEducationLevels
+
++ Parameters
+    + id (number, required) - Id of the Test
+    
+### Retrieve a Knowledge Test [GET]
+
++ Response 200 (application/hal+json)
+
+        {
+            "id": 1,
+            "type": "one-page",
+            "number_of_questions": 4,
+            "maximum_time": 300,
+            "logo": "http://localhost:8080/images/test-placeholders/placeholder_testu1.svg",
+            "shuffle_questions": true,
+            "_links": {
+                "self": {
+                    "href": "\/api\/tests\/1"
+                }
+            },
+            "_embedded": {
+                "average_fill_time": 250,
+                "questions_count": 10,
+                "name": {
+                    "cs": "Znalostní test",
+                    "en": "Knowledge test"
+                },
+                "intro": {
+                    "cs": "Toto je intro pre Znalostny test",
+                    "en": "This is a intro for Knowledge test in english"
+                }
+            }
+        }
+
+### Update a Knowledge Test [PUT]
+
+Updates a Knowledge Test with given Id. 
+
++ Request (application/json)
+
+    + Body
+    
+            {
+                "name": {
+                  "cs": "Lorem czpsum...",
+                  "en": "Lorem enpsum..."
+                },
+                "intro": {
+                  "cs": "Lorem czpsum...",
+                  "en": "Lorem enpsum..."
+                },
+                "type": "question-per-page",
+                "number_of_questions": 3,
+                "shuffle_questions": true,
+                "maximum_time": 100,
+                "logo": "http://example.com/logo/1.jpg"
+            }
+
++ Response 200 (application/hal+json)
+
+        {
+            "ok": true,
+            "updated": {
+                "id": 1,
+                "type": "question-per-page",
+                "number_of_questions": 3,
+                "maximum_time": 100,
+                "shuffle_questions": true,
+                "logo": "http:\/\/example.com\/logo\/1.jpg",
+                "test_fills": [],
+                "_links": {
+                    "self": {
+                        "href": "\/api\/tests\/1"
+                    }
+                },
+                "_embedded": {
+                    "name": {
+                        "en": "Lorem enpsum...",
+                        "cs": "Lorem czpsum..."
+                    },
+                    "intro": {
+                        "en": "Lorem enpsum...",
+                        "cs": "Lorem czpsum..."
+                    },
+                    "average_fill_time": null,
+                    "questions_count": 10
+                }
+            }
+        }
+
+### Hide a Knowledge Test [DELETE]
+
+Sets Knowledge Test as hidden.
+
++ Response 200 (applicaiton/hal+json)
+
+        {
+            "ok": true
+        }
+
+# Group Knowledge Test Fills
+
+## Test Fills Collection [/api/test-fills?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of jobs returned in the request
+    + page (number, optional) - Distance from beginning of the array of available jobs
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### Create a Knowledge Test Fill [POST]
+
+Creates a Knowledge Test Fill for currently signed in Candidate. During the creation, Questions and Answers are drawn
+for the Knowledge Test Fill and are sent in the response.
+
+**Important:** If the time for the Knowledge Test is limited, the countdown starts at the moment of Knowledge Test Fill creation.
+
++ Request (application/json)
+
+        {
+            "test": 1
+        }
+
++ Response 201 (application/hal+json) 
+
+        {
+            "ok": true,
+            "inserted": {
+                "id": 9,
+                "start": "2015-12-08T22:01:56+0100",
+                "_links": {
+                    "self": {
+                        "href": "\/api\/test-fills\/9"
+                    },
+                    "test": {
+                        "href": "\/api\/tests\/1"
+                    },
+                    "drawn_questions": {
+                        "href": "\/api\/drawn-questions"
+                    }
+                },
+                "_embedded": {
+                    "completed": false,
+                    "state": "in_progress",
+                    "number_of_question_fills": 0,
+                    "test": {
+                        "id": 1,
+                        "type": "one-page",
+                        "number_of_questions": 3,
+                        "maximum_time": 300,
+                        "shuffle_questions": true,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/tests\/1"
+                            }
+                        },
+                        "_embedded": {
+                            "name": {
+                                "cs": "Znalostní test",
+                                "en": "Knowledge test"
+                            },
+                            "intro": {
+                                "cs": "Toto je intro pre Znalostny test",
+                                "en": "This is a intro for Knowledge test in english"
+                            },
+                            "questions_count": 0
+                        }
+                    },
+                    "drawn_questions": [
+                        {
+                            "id": 17,
+                            "order": 1,
+                            "_links": {
+                                "self": {
+                                    "href": "\/api\/drawn-questions\/17"
+                                },
+                                "question": {
+                                    "href": "Questions:read"
+                                },
+                                "test_fill": {
+                                    "href": "\/api\/test-fills\/9"
+                                },
+                                "drawn_answers": {
+                                    "href": "DrawnAnswers:readAll"
+                                }
+                            },
+                            "_embedded": {
+                                "question": {
+                                    "id": 3,
+                                    "text": {
+                                        "cs": "Aky je zmysel zivota?",
+                                        "en": "What is the meaning of life?"
+                                    },
+                                    "type": "closed",
+                                    "number_of_answers": 4,
+                                    "multiple_correct": true
+                                },
+                                "drawn_answers": [
+                                    {
+                                        "id": 65,
+                                        "order": 1,
+                                        "_links": {
+                                            "answer": {
+                                                "href": "Answers:read"
+                                            }
+                                        },
+                                        "_embedded": {
+                                            "answer": {
+                                                "id": 12,
+                                                "_embedded": {
+                                                    "text": {
+                                                        "cs": "Odpoved 12",
+                                                        "en": "Answer 12"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "id": 66,
+                                        "order": 2,
+                                        "_links": {
+                                            "answer": {
+                                                "href": "Answers:read"
+                                            }
+                                        },
+                                        "_embedded": {
+                                            "answer": {
+                                                "id": 9,
+                                                "_embedded": {
+                                                    "text": {
+                                                        "cs": "Odpoved 9",
+                                                        "en": "Answer 9"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "id": 67,
+                                        "order": 3,
+                                        "_links": {
+                                            "answer": {
+                                                "href": "Answers:read"
+                                            }
+                                        },
+                                        "_embedded": {
+                                            "answer": {
+                                                "id": 11,
+                                                "_embedded": {
+                                                    "text": {
+                                                        "cs": "Odpoved 11",
+                                                        "en": "Answer 11"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "id": 68,
+                                        "order": 4,
+                                        "_links": {
+                                            "answer": {
+                                                "href": "Answers:read"
+                                            }
+                                        },
+                                        "_embedded": {
+                                            "answer": {
+                                                "id": 10,
+                                                "_embedded": {
+                                                    "text": {
+                                                        "cs": "Odpoved 10",
+                                                        "en": "Answer 10"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 18,
+                            "order": 2,
+                            "_links": {
+                                "self": {
+                                    "href": "\/api\/drawn-questions\/18"
+                                },
+                                "question": {
+                                    "href": "Questions:read"
+                                },
+                                "test_fill": {
+                                    "href": "\/api\/test-fills\/9"
+                                },
+                                "drawn_answers": {
+                                    "href": "DrawnAnswers:readAll"
+                                }
+                            },
+                            "_embedded": {
+                                "question": {
+                                    "id": 4,
+                                    "text": {
+                                        "cs": "Co mala moja mamka vcera na veceru?",
+                                        "en": "What did my mother had for a dinner yesterday?"
+                                    },
+                                    "type": "closed",
+                                    "number_of_answers": 4,
+                                    "multiple_correct": false
+                                },
+                                "drawn_answers": [
+                                    {
+                                        "id": 69,
+                                        "order": 1,
+                                        "_links": {
+                                            "answers": {
+                                                "href": "Answers:read"
+                                            }
+                                        },
+                                        "_embedded": {
+                                            "answer": {
+                                                "id": 7,
+                                                "_embedded": {
+                                                    "text": {
+                                                        "cs": "Odpoved 7",
+                                                        "en": "Answer 7"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "id": 70,
+                                        "order": 2,
+                                        "_links": {
+                                            "answer": {
+                                                "href": "Answers:read"
+                                            }
+                                        },
+                                        "_embedded": {
+                                            "answer": {
+                                                "id": 45,
+                                                "_embedded": {
+                                                    "text": {
+                                                        "cs": "Odpoved 5",
+                                                        "en": "Answer 5"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "id": 71,
+                                        "order": 3,
+                                        "_links": {
+                                            "answer": {
+                                                "href": "Answers:read"
+                                            }
+                                        },
+                                        "_embedded": {
+                                            "answer": {
+                                                "id": 6,
+                                                "_embedded": {
+                                                    "text": {
+                                                        "cs": "Odpoved 6",
+                                                        "en": "Answer 6"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "id": 72,
+                                        "order": 4,
+                                        "_links": {
+                                            "answer": {
+                                                "href": "Answers:read"
+                                            }
+                                        },
+                                        "_embedded": {
+                                            "answer": {
+                                                "id": 8,
+                                                "_embedded": {
+                                                    "text": {
+                                                        "cs": "Odpoved 8",
+                                                        "en": "Answer 8"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 19,
+                            "order": 3,
+                            "_links": {
+                                "self": {
+                                    "href": "\/api\/drawn-questions\/2"
+                                },
+                                "question": {
+                                    "href": "Questions:read"
+                                },
+                                "test_fill": {
+                                    "href": "\/api\/test-fills\/1"
+                                },
+                                "drawn_answers": {
+                                    "href": "DrawnAnswers:readAll"
+                                }
+                            },
+                            "_embedded": {
+                                "question": {
+                                    "id": 5,
+                                    "text": {
+                                        "cs": "Jak se máte?",
+                                        "en": "How do you do?"
+                                    },
+                                    "type": "open",
+                                    "short_answer": true
+                                }
+                            }
+                        }
+                    ],
+                    "current_drawn_question": {
+                        "id": 1,
+                        "order": 1,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-questions\/1"
+                            },
+                            "question": {
+                                "href": "\/api\/questions\/1"
+                            },
+                            "test_fill": {
+                                "href": "\/api\/test-fills\/1"
+                            },
+                            "drawn_answers": {
+                                "href": "\/api\/drawn-answers"
+                            }
+                        },
+                        "_embedded": {
+                            "question": {
+                                "id": 1,
+                                "type": "closed",
+                                "number_of_answers": 4,
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/questions\/1"
+                                    }
+                                },
+                                "_embedded": {
+                                    "text": []
+                                }
+                            },
+                            "drawn_answers": [
+                                {
+                                    "id": 1,
+                                    "order": 1,
+                                    "_links": {
+                                        "self": {
+                                            "href": "\/api\/drawn-answers\/1"
+                                        },
+                                        "answer": {
+                                            "href": "\/api\/answers\/1"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 1,
+                                            "_links": {
+                                                "self": {
+                                                    "href": "\/api\/answers\/1"
+                                                }
+                                            },
+                                            "_embedded": {
+                                                "text": []
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 2,
+                                    "order": 2,
+                                    "_links": {
+                                        "self": {
+                                            "href": "\/api\/drawn-answers\/2"
+                                        },
+                                        "answer": {
+                                            "href": "\/api\/answers\/2"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 2,
+                                            "_links": {
+                                                "self": {
+                                                    "href": "\/api\/answers\/2"
+                                                }
+                                            },
+                                            "_embedded": {
+                                                "text": []
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+
+
+## Candidate's Test Fills Collection [/api/candidates/{candidate_id}/test-fills?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + candidate_id (number, optional) - Id of the candidate. You can use 'me' to retrieve signed in Candidate's Knowledge Test Fills.
+    + limit (number, optional) - Limits number of jobs returned in the request
+    + page (number, optional) - Distance from beginning of the array of available jobs
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Candidate's Test Fills [GET]
+
+Retrieves list of Candidate's Test Fills.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "test_fills": [
+                    {
+                        "id": 1,
+                        "start": "2015-12-28T10:53:50+0100",
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/test-fills\/1"
+                            },
+                            "test": {
+                                "href": "\/api\/tests\/1"
+                            },
+                            "drawn_questions": {
+                                "href": "\/api\/drawn-questions"
+                            }
+                        },
+                        "_embedded": {
+                            "completed": false,
+                            "state": "in_progress",
+                            "number_of_question_fills": 0,
+                            "test": {
+                                "id": 1,
+                                "type": "question-per-page",
+                                "number_of_questions": 2,
+                                "maximum_time": 300,
+                                "logo": "http:\/\/example.com\/test\/1",
+                                "test_fills": [
+                                    {
+                                        "id": 1,
+                                        "start": "2015-12-28T10:53:50+0100",
+                                        "_links": {
+                                            "self": {
+                                                "href": "\/api\/test-fills\/1"
+                                            },
+                                            "test": {
+                                                "href": "\/api\/tests\/1"
+                                            },
+                                            "drawn_questions": {
+                                                "href": "\/api\/drawn-questions"
+                                            }
+                                        },
+                                        "_embedded": {
+                                            "completed": false,
+                                            "state": "in_progress",
+                                            "number_of_question_fills": 0,
+                                            "test": null
+                                        }
+                                    }
+                                ],
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/tests\/1"
+                                    }
+                                },
+                                "_embedded": {
+                                    "name": [],
+                                    "intro": [],
+                                    "average_fill_time": null
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "start": "2015-12-28T10:53:50+0100",
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/test-fills\/2"
+                            },
+                            "test": {
+                                "href": "\/api\/tests\/2"
+                            },
+                            "drawn_questions": {
+                                "href": "\/api\/drawn-questions"
+                            }
+                        },
+                        "_embedded": {
+                            "completed": false,
+                            "state": "in_progress",
+                            "number_of_question_fills": 0,
+                            "test": {
+                                "id": 2,
+                                "type": "question-per-page",
+                                "number_of_questions": 2,
+                                "maximum_time": 300,
+                                "logo": "http:\/\/example.com\/test\/1",
+                                "test_fills": [
+                                    {
+                                        "id": 2,
+                                        "start": "2015-12-28T10:53:50+0100",
+                                        "_links": {
+                                            "self": {
+                                                "href": "\/api\/test-fills\/2"
+                                            },
+                                            "test": {
+                                                "href": "\/api\/tests\/2"
+                                            },
+                                            "drawn_questions": {
+                                                "href": "\/api\/drawn-questions"
+                                            }
+                                        },
+                                        "_embedded": {
+                                            "completed": false,
+                                            "state": "in_progress",
+                                            "number_of_question_fills": 0,
+                                            "test": null
+                                        }
+                                    },
+                                    {
+                                        "id": 3,
+                                        "start": "2015-12-28T10:53:50+0100",
+                                        "_links": {
+                                            "self": {
+                                                "href": "\/api\/test-fills\/3"
+                                            },
+                                            "test": {
+                                                "href": "\/api\/tests\/2"
+                                            },
+                                            "drawn_questions": {
+                                                "href": "\/api\/drawn-questions"
+                                            }
+                                        },
+                                        "_embedded": {
+                                            "completed": false,
+                                            "state": "in_progress",
+                                            "number_of_question_fills": 0,
+                                            "test": null
+                                        }
+                                    }
+                                ],
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/tests\/2"
+                                    }
+                                },
+                                "_embedded": {
+                                    "name": [],
+                                    "intro": [],
+                                    "average_fill_time": null
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+## Knowledge Test Fill [/api/test-fills/{id}]
+
++ Attributes
+    + id (number, required) - Id of the Knowledge Test Fill.
+    + start (string, optional) - Date when the Knowledge Test Fill was started.
+    + end (string, optional) - Date when the Knowledge Test Fill was ended.
+    + percent (number, optional) - Points received / maximum points
+    + percentile (number, optional) - Percentile of the Test Fill among other Test Fills for this Test.
+    + points (number, optional) - Points received
+    + score (number, optional) - Score of the Test Fill
+    + blocked (string, optional) - Date when the Knowledge Test Fill was blocked from filling.
+    + embedded.test (object, optional) - The Test
+    + embedded.drawn_questions (object, optional) - List of Fill's Drawn Questions, those are the ones the Candidate should answer.
+    + embedded.number_of_question_fills (number, required) - Number of Question Fills belonging to this Test Fill
+    + embedded.current_drawn_question (object, required) - Drawn Question which should be answered next.
+
++ Parameters
+    + id (number, required) - Id of the Knowledge Test Fill.
+
+### Retrieve Knowledge Test Fill [GET]
+
+Retrieves Knowledge Test Fill with the given ID.
+
+**Important:** if the Fill expired, it will be marked as ended and the result will be calculated during this request.
+
++ Response 200 (application/hal+json)
+
+        {
+            "id": 9,
+            "start": "2015-11-27T11:16:24+0100",
+            "_links": {
+                "self": {
+                    "href": "\/api\/test-fills\/9"
+                },
+                "test": {
+                    "href": "\/api\/tests\/1"
+                },
+                "drawn_questions": {
+                    "href": "\/api\/drawn-questions"
+                }
+            },
+            "_embedded": {
+                "completed": false,
+                "state": "in_progress",
+                "number_of_question_fills": 0,
+                "test": {
+                    "id": 1,
+                    "type": "one-page",
+                    "number_of_questions": 5,
+                    "maximum_time": 300,
+                    "shuffle_questions": true,
+                    "_links": {
+                        "self": {
+                            "href": "\/api\/tests\/1"
+                        }
+                    },
+                    "_embedded": {
+                        "name": {
+                            "cs": "Znalostní test",
+                            "en": "Knowledge test"
+                        },
+                        "intro": {
+                            "cs": "Toto je intro pre Znalostny test",
+                            "en": "This is a intro for Knowledge test in english"
+                        }
+                    }
+                },
+                "drawn_questions": [
+                    {
+                        "id": 17,
+                        "order": 1,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-questions\/17"
+                            },
+                            "question": {
+                                "href": "Questions:read"
+                            },
+                            "test_fill": {
+                                "href": "\/api\/test-fills\/9"
+                            },
+                            "drawn_answers": {
+                                "href": "DrawnAnswers:readAll"
+                            }
+                        },
+                        "_embedded": {
+                            "question": {
+                                "id": 3,
+                                "text": {
+                                    "cs": "Aky je zmysel zivota? [17]",
+                                    "en": "What is the meaning of life? [17]"
+                                },
+                                "type": "closed",
+                                "number_of_answers": 4,
+                                "multiple_correct": true
+                            },
+                            "drawn_answers": [
+                                {
+                                    "id": 65,
+                                    "order": 1,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 9,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 9",
+                                                    "en": "Answer 9"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 66,
+                                    "order": 2,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 12,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 12",
+                                                    "en": "Answer 12"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 67,
+                                    "order": 3,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 11,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 11",
+                                                    "en": "Answer 11"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 68,
+                                    "order": 4,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 10,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 10",
+                                                    "en": "Answer 10"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": 18,
+                        "order": 2,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-questions\/18"
+                            },
+                            "question": {
+                                "href": "Questions:read"
+                            },
+                            "test_fill": {
+                                "href": "\/api\/test-fills\/9"
+                            },
+                            "drawn_answers": {
+                                "href": "DrawnAnswers:readAll"
+                            }
+                        },
+                        "_embedded": {
+                            "question": {
+                                "id": 4,
+                                "text": {
+                                    "cs": "Co mala moja <span style='color:red'>mamka</span> vcera<hr> na veceru? [18]",
+                                    "en": "What did my <b>mother</b> had for<b> dinner yesterday? [18]"
+                                },
+                                "type": "closed",
+                                "number_of_answers": 4,
+                                "multiple_correct": false
+                            },
+                            "drawn_answers": [
+                                {
+                                    "id": 69,
+                                    "order": 1,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 15,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 15",
+                                                    "en": "Answer 15"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 70,
+                                    "order": 2,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 14,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "<img src='http://lorempixel.com/100/100/' />",
+                                                    "en": "<img src='http://lorempixel.com/100/100/' />"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 71,
+                                    "order": 3,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 13,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 13",
+                                                    "en": "Answer 13"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 72,
+                                    "order": 4,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 16,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 16",
+                                                    "en": "Answer 16"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": 19,
+                        "order": 3,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-questions\/19"
+                            },
+                            "question": {
+                                "href": "Questions:read"
+                            },
+                            "test_fill": {
+                                "href": "\/api\/test-fills\/1"
+                            },
+                            "drawn_answers": {
+                                "href": "DrawnAnswers:readAll"
+                            }
+                        },
+                        "_embedded": {
+                            "question": {
+                                "id": 5,
+                                "text": {
+                                    "cs": "Jak se máte? [19]",
+                                    "en": "How do you do? [19]"
+                                },
+                                "type": "open",
+                                "short_answer": true
+                            }
+                        }
+                    },
+                    {
+                        "id": 20,
+                        "order": 4,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-questions\/20"
+                            },
+                            "question": {
+                                "href": "Questions:read"
+                            },
+                            "test_fill": {
+                                "href": "\/api\/test-fills\/1"
+                            },
+                            "drawn_answers": {
+                                "href": "DrawnAnswers:readAll"
+                            }
+                        },
+                        "_embedded": {
+                            "question": {
+                                "id": 6,
+                                "text": {
+                                    "cs": "Jaká je vaše oblíbená kniha a proč? [20]",
+                                    "en": "What is your favorite book and why? [20]"
+                                },
+                                "type": "open",
+                                "short_answer": false
+                            }
+                        }
+                    },
+                    {
+                        "id": 21,
+                        "order": 5,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-questions\/21"
+                            },
+                            "question": {
+                                "href": "Questions:read"
+                            },
+                            "test_fill": {
+                                "href": "\/api\/test-fills\/9"
+                            },
+                            "drawn_answers": {
+                                "href": "DrawnAnswers:readAll"
+                            }
+                        },
+                        "_embedded": {
+                            "question": {
+                                "id": 7,
+                                "text": {
+                                    "cs": "Jake je vase oblibene jidlo? [21]",
+                                    "en": "What is your favorite food? [21]"
+                                },
+                                "type": "closed",
+                                "number_of_answers": 4,
+                                "multiple_correct": false
+                            },
+                            "drawn_answers": [
+                                {
+                                    "id": 73,
+                                    "order": 1,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 17,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 17",
+                                                    "en": "Answer 17"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 74,
+                                    "order": 2,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 18,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 18",
+                                                    "en": "Answer 18"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 75,
+                                    "order": 3,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 19,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 19",
+                                                    "en": "Answer 19"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 76,
+                                    "order": 4,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 20,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 20",
+                                                    "en": "Answer 20"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "current_drawn_question": {
+                    "id": 17,
+                    "order": 1,
+                    "_links": {
+                        "self": {
+                            "href": "\/api\/drawn-questions\/19"
+                        },
+                        "question": {
+                            "href": "Questions:read"
+                        },
+                        "test_fill": {
+                            "href": "\/api\/test-fills\/1"
+                        },
+                        "drawn_answers": {
+                            "href": "DrawnAnswers:readAll"
+                        }
+                    },
+                    "_embedded": {
+                        "question": {
+                            "id": 5,
+                            "text": {
+                                "cs": "Jak se máte? [19]",
+                                "en": "How do you do? [19]"
+                            },
+                            "type": "open",
+                            "short_answer": true
+                        }
+                    }
+                }
+            }
+        }
+
+# Group Drawn Knowledge Questions
+
+## Drawn Knowledge Questions Collection [/api/test-fills/{test_fill_id}/drawn-questions?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + test_fill_id (number, required) - Id of the Knowledge Test Fill
+    + limit (number, optional) - Limits number of Drawn Questions returned in the request
+    + page (number, optional) - Distance from beginning of the array of available Drawn Questions
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Drawn Knowledge Questions for Knowledge Test Fill [GET]
+
+Retrieves a List of Drawn Knowledge Questions for given Knowledge Test Fill.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "drawn_questions": [
+                    {
+                        "id": 1,
+                        "order": 1,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-questions\/1"
+                            },
+                            "question": {
+                                "href": "Questions:read"
+                            },
+                            "test_fill": {
+                                "href": "\/api\/test-fills\/1"
+                            },
+                            "drawn_answers": {
+                                "href": "DrawnAnswers:readAll"
+                            }
+                        },
+                        "_embedded": {
+                            "question": {
+                                "id": 3,
+                                "text": {
+                                    "cs": "Aky je zmysel zivota?",
+                                    "en": "What is the meaning of life?"
+                                },
+                                "type": "closed",
+                                "number_of_answers": 4,
+                                "multiple_correct": true
+                            },
+                            "drawn_answers": [
+                                {
+                                    "id": 65,
+                                    "order": 1,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 11,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 11",
+                                                    "en": "Answer 11"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 66,
+                                    "order": 2,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 9,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 9",
+                                                    "en": "Answer 9"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 67,
+                                    "order": 3,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 12,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 12",
+                                                    "en": "Answer 12"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 68,
+                                    "order": 4,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 10,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 10",
+                                                    "en": "Answer 10"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "order": 2,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-questions\/2"
+                            },
+                            "question": {
+                                "href": "Questions:read"
+                            },
+                            "test_fill": {
+                                "href": "\/api\/test-fills\/1"
+                            },
+                            "drawn_answers": {
+                                "href": "DrawnAnswers:readAll"
+                            }
+                        },
+                        "_embedded": {
+                            "question": {
+                                "id": 4,
+                                "text": {
+                                    "cs": "Co mala moja mamka vcera na veceru?",
+                                    "en": "What did my mother had for a dinner yesterday?"
+                                },
+                                "type": "closed",
+                                "number_of_answers": 4,
+                                "multiple_correct": false
+                            },
+                            "drawn_answers": [
+                                {
+                                    "id": 69,
+                                    "order": 1,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 13,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 13",
+                                                    "en": "Answer 13"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 70,
+                                    "order": 2,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 14,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 14",
+                                                    "en": "Answer 14"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 71,
+                                    "order": 3,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 16,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 16",
+                                                    "en": "Answer 16"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 72,
+                                    "order": 4,
+                                    "_links": {
+                                        "answer": {
+                                            "href": "Answers:read"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "answer": {
+                                            "id": 15,
+                                            "_embedded": {
+                                                "text": {
+                                                    "cs": "Odpoved 15",
+                                                    "en": "Answer 15"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": 3,
+                        "order": 3,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/drawn-questions\/2"
+                            },
+                            "question": {
+                                "href": "Questions:read"
+                            },
+                            "test_fill": {
+                                "href": "\/api\/test-fills\/1"
+                            },
+                            "drawn_answers": {
+                                "href": "DrawnAnswers:readAll"
+                            }
+                        },
+                        "_embedded": {
+                            "question": {
+                                "id": 5,
+                                "text": {
+                                    "cs": "Jak se máte?",
+                                    "en": "How do you do?"
+                                },
+                                "type": "open",
+                                "short_answer": true
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+
+## Drawn Knowledge Question [/api/drawn-questions/{id}]
+
++ Attributes
+    + id (number, required) - Id of the Drawn Knowledge Question
+    + sort (number, required) - Number by which the Drawn Questions are ordered
+    + embedded.test_fill (object, required) - Knowledge Test Fill to which the Drawn Question belongs
+    + embedded.question (object, required) - Knowledge Question which was drawn
+    + embedded.drawn_answers (object, optional) - List of Drawn Knowledge Answers drawn for the Question (only for closed Questions)
+
++ Parameters
+    + id (number, optional) - Id of the Drawn Knowledge Question
+
+### Retrieve Drawn Knowledge Question [GET]
+
++ Response 200 (application/hal+json)
+
+        {
+            "id": 1,
+            "order": 1,
+            "_links": {
+                "self": {
+                    "href": "\/api\/drawn-questions\/1"
+                },
+                "question": {
+                    "href": "Questions:read"
+                },
+                "test_fill": {
+                    "href": "\/api\/test-fills\/1"
+                },
+                "drawn_answers": {
+                    "href": "DrawnAnswers:readAll"
+                }
+            },
+            "_embedded": {
+                "question": {
+                    "id": 1,
+                    "type": "closed",
+                    "text": [],
+                    "number_of_answers": 4,
+                    "multiple_correct": true,
+                    "answers": []
+                },
+                "test_fill": {
+                    "id": 1,
+                    "start": "2015-11-26T21:09:32+0100",
+                    "_links": {
+                        "self": {
+                            "href": "\/api\/test-fills\/1"
+                        },
+                        "test": {
+                            "href": "\/api\/tests\/1"
+                        },
+                        "drawn_questions": {
+                            "href": "\/api\/drawn-questions"
+                        }
+                    },
+                    "_embedded": {
+                        "completed": false,
+                        "state": "in_progress",
+                        "test": {
+                            "id": 1,
+                            "type": "question-per-page",
+                            "number_of_questions": 2,
+                            "maximum_time": 300,
+                            "shuffle_questions": true,
+                            "_links": {
+                                "self": {
+                                    "href": "\/api\/tests\/1"
+                                }
+                            },
+                            "_embedded": {
+                                "name": []
+                            }
+                        }
+                    }
+                },
+                "drawn_answers": []
+            }
+        }
+
+
+### Hide a Knowledge Test Fill [DELETE]
+
+Sets Knowledge Test Fill as hidden.
+**Important note:** This means the user will be able to fill the test again.
+
++ Response 200 (applicaiton/hal+json)
+
+        {
+            "ok": true
+        }
+
+# Group Knowledge Question Fills
+
+## Knowledge Question Fills Collection [/api/question-fills?limit={limit}&page={page}&sort={sort}&evaluate-test-fill={evaluate_test_fill}]
+
++ Parameters
+    + evaluate_test_fill (boolean, optional) - If set to true/1, evaluates the TestFill when Creating a Question Fill.
+    + limit (number, optional) - Limits number of Question Fills returned in the request
+    + page (number, optional) - Distance from beginning of the array of available Question Fills
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### Create a Knowledge Question Fill [POST]
+
+Creates a Knowledge Question Fill for given Knowledge Test Fill, Question with given Answer(s).
+
+**Note:** If the Knowledge Test Fill has epired, the Knowledge Question Fill won't be created. There is however a small leeway to cover the API calls.
+
++ Attributes
+    + test_fill (string, required) - Id of the Knowledge Test Fill
+    + question (string, required) - Id of the Question for which you are creating the Question Fill
+    + answers (array, optional) - Ids of the Answers the Candidate chose (use this field if multiple answers are correct)
+    + answer (number, optional) - Id of the Answer the Candidate chose (use this field this if only one answer is correct)
+    + text (string, optional) - Text of the Answer (use this field for open Questions)
+
++ Request (application/json)
+
+        {
+            "test_fill": "1",
+            "question": 1,
+            "answers": [3]
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+            "ok": true,
+            "inserted": {
+                "id": 20,
+                "created": "2015-11-26T19:51:19+0100",
+                "text": "Lorem Ipsum",
+                "_links": {
+                    "self": {
+                        "href": "\/api\/question-fills\/20"
+                    },
+                    "question": {
+                        "href": "Questions:read"
+                    },
+                    "test_fill": {
+                        "href": "\/api\/test-fills?id=3"
+                    }
+                },
+                "_embedded": {
+                    "question": {
+                        "id": 5,
+                        "type": "open",
+                        "text": [],
+                        "number_of_answers": 4,
+                        "answers": []
+                    },
+                    "test_fill": {
+                        "id": 3,
+                        "start": "2015-11-26T19:48:19+0100",
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/test-fills\/3"
+                            },
+                            "test": {
+                                "href": "\/api\/tests\/3"
+                            }
+                        },
+                        "_embedded": {
+                            "completed": false,
+                            "state": "in_progress",
+                            "test": {
+                                "id": 3,
+                                "type": "question-per-page",
+                                "number_of_questions": 2,
+                                "maximum_time": 300,
+                                "shuffle_questions": true,
+                                "_links": {
+                                    "self": {
+                                        "href": "\/api\/tests\/3"
+                                    }
+                                },
+                                "_embedded": {
+                                    "name": []
+                                }
+                            }
+                        }
+                    },
+                    "answer_fills": []
+                }
+            }
+        }
+
++ Request (application/json)
+
+    + Headers
+
+            X-Batch: array
+
+    + Body
+
+            [
+                {
+                  "test_fill": 2,
+                  "question": 3,
+                  "answer": 9
+                },
+                {
+                  "test_fill": 2,
+                  "question": 4,
+                  "answer": 13
+                }
+            ]
+    
++ Response 201 (application/json)
+
+        {
+            "ok": true,
+            "inserted": [
+                {
+                    "id": 18,
+                    "created": "2016-01-25T22:21:10+0100",
+                    "points": 2,
+                    "maximum_points": 4,
+                    "percent": 50,
+                    "_links": {
+                        "self": {
+                            "href": "\/api\/question-fills\/18"
+                        },
+                        "question": {
+                            "href": "\/api\/questions?id=3"
+                        },
+                        "test_fill": {
+                            "href": "\/api\/test-fills?id=2"
+                        }
+                    },
+                    "_embedded": {
+                        "question": {
+                            "id": 3,
+                            "type": "closed",
+                            "number_of_answers": 4,
+                            "multiple_correct": false,
+                            "_links": {
+                                "self": {
+                                    "href": "\/api\/questions\/3"
+                                }
+                            },
+                            "_embedded": {
+                                "text": [],
+                                "answers_count": 4
+                            }
+                        },
+                        "test_fill": {
+                            "id": 2,
+                            "start": "2016-01-25T22:18:04+0100",
+                            "end": "2016-01-25T22:21:10+0100",
+                            "percent": 50,
+                            "points": 4,
+                            "score": 5011,
+                            "_links": {
+                                "self": {
+                                    "href": "\/api\/test-fills\/2"
+                                },
+                                "test": {
+                                    "href": "\/api\/tests\/2"
+                                },
+                                "drawn_questions": {
+                                    "href": "\/api\/drawn-questions"
+                                }
+                            },
+                            "_embedded": {
+                                "completed": true,
+                                "state": "completed",
+                                "number_of_question_fills": 2,
+                                "test": {
+                                    "id": 2,
+                                    "type": "one-page",
+                                    "number_of_questions": 2,
+                                    "maximum_time": 300,
+                                    "logo": "http:\/\/example.com\/test\/1",
+                                    "test_fills": [
+                                        {
+                                            "id": 2,
+                                            "start": "2016-01-25T22:18:04+0100",
+                                            "end": "2016-01-25T22:21:10+0100",
+                                            "percent": 50,
+                                            "points": 4,
+                                            "score": 5011,
+                                            "_links": {
+                                                "self": {
+                                                    "href": "\/api\/test-fills\/2"
+                                                },
+                                                "test": {
+                                                    "href": "\/api\/tests\/2"
+                                                },
+                                                "drawn_questions": {
+                                                    "href": "\/api\/drawn-questions"
+                                                }
+                                            },
+                                            "_embedded": {
+                                                "completed": true,
+                                                "state": "completed",
+                                                "number_of_question_fills": 2,
+                                                "test": null
+                                            }
+                                        }
+                                    ],
+                                    "questions": [
+                                        {
+                                            "id": 4,
+                                            "type": "closed",
+                                            "number_of_answers": 4,
+                                            "multiple_correct": false,
+                                            "_links": {
+                                                "self": {
+                                                    "href": "\/api\/questions\/4"
+                                                }
+                                            },
+                                            "_embedded": {
+                                                "text": [],
+                                                "answers_count": 4
+                                            }
+                                        },
+                                        {
+                                            "id": 3,
+                                            "type": "closed",
+                                            "number_of_answers": 4,
+                                            "multiple_correct": false,
+                                            "_links": {
+                                                "self": {
+                                                    "href": "\/api\/questions\/3"
+                                                }
+                                            },
+                                            "_embedded": {
+                                                "text": [],
+                                                "answers_count": 4
+                                            }
+                                        }
+                                    ],
+                                    "_links": {
+                                        "self": {
+                                            "href": "\/api\/tests\/2"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "name": [],
+                                        "intro": [],
+                                        "average_fill_time": 186,
+                                        "questions_count": 2
+                                    }
+                                }
+                            }
+                        },
+                        "answer_fills": []
+                    }
+                },
+                {
+                    "id": 19,
+                    "created": "2016-01-25T22:21:10+0100",
+                    "points": 2,
+                    "maximum_points": 4,
+                    "percent": 50,
+                    "_links": {
+                        "self": {
+                            "href": "\/api\/question-fills\/19"
+                        },
+                        "question": {
+                            "href": "\/api\/questions?id=4"
+                        },
+                        "test_fill": {
+                            "href": "\/api\/test-fills?id=2"
+                        }
+                    },
+                    "_embedded": {
+                        "question": {
+                            "id": 4,
+                            "type": "closed",
+                            "number_of_answers": 4,
+                            "multiple_correct": false,
+                            "_links": {
+                                "self": {
+                                    "href": "\/api\/questions\/4"
+                                }
+                            },
+                            "_embedded": {
+                                "text": [],
+                                "answers_count": 4
+                            }
+                        },
+                        "test_fill": {
+                            "id": 2,
+                            "start": "2016-01-25T22:18:04+0100",
+                            "end": "2016-01-25T22:21:10+0100",
+                            "percent": 50,
+                            "points": 4,
+                            "score": 5011,
+                            "_links": {
+                                "self": {
+                                    "href": "\/api\/test-fills\/2"
+                                },
+                                "test": {
+                                    "href": "\/api\/tests\/2"
+                                },
+                                "drawn_questions": {
+                                    "href": "\/api\/drawn-questions"
+                                }
+                            },
+                            "_embedded": {
+                                "completed": true,
+                                "state": "completed",
+                                "number_of_question_fills": 2,
+                                "test": {
+                                    "id": 2,
+                                    "type": "one-page",
+                                    "number_of_questions": 2,
+                                    "maximum_time": 300,
+                                    "logo": "http:\/\/example.com\/test\/1",
+                                    "test_fills": [
+                                        {
+                                            "id": 2,
+                                            "start": "2016-01-25T22:18:04+0100",
+                                            "end": "2016-01-25T22:21:10+0100",
+                                            "percent": 50,
+                                            "points": 4,
+                                            "score": 5011,
+                                            "_links": {
+                                                "self": {
+                                                    "href": "\/api\/test-fills\/2"
+                                                },
+                                                "test": {
+                                                    "href": "\/api\/tests\/2"
+                                                },
+                                                "drawn_questions": {
+                                                    "href": "\/api\/drawn-questions"
+                                                }
+                                            },
+                                            "_embedded": {
+                                                "completed": true,
+                                                "state": "completed",
+                                                "number_of_question_fills": 2,
+                                                "test": null
+                                            }
+                                        }
+                                    ],
+                                    "questions": [
+                                        {
+                                            "id": 4,
+                                            "type": "closed",
+                                            "number_of_answers": 4,
+                                            "multiple_correct": false,
+                                            "_links": {
+                                                "self": {
+                                                    "href": "\/api\/questions\/4"
+                                                }
+                                            },
+                                            "_embedded": {
+                                                "text": [],
+                                                "answers_count": 4
+                                            }
+                                        },
+                                        {
+                                            "id": 3,
+                                            "type": "closed",
+                                            "number_of_answers": 4,
+                                            "multiple_correct": false,
+                                            "_links": {
+                                                "self": {
+                                                    "href": "\/api\/questions\/3"
+                                                }
+                                            },
+                                            "_embedded": {
+                                                "text": [],
+                                                "answers_count": 4
+                                            }
+                                        }
+                                    ],
+                                    "_links": {
+                                        "self": {
+                                            "href": "\/api\/tests\/2"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "name": [],
+                                        "intro": [],
+                                        "average_fill_time": 186,
+                                        "questions_count": 2
+                                    }
+                                }
+                            }
+                        },
+                        "answer_fills": []
+                    }
+                }
+            ]
+        }
+
+
+## Knowledge Question Fill [/api/question-fills/{id}]
+
++ Attributes
+    + id (number, required) - Id of the Knowledge Question Fill
+    + created (string, required) - Date when the Fill was created
+    + text (string, optional) - Text of the answer (only for open Questions)
+    + points (string, optional) - Points received for answering the Question
+    + maximum_points (string, optional) - Maximum points which could be awarded for answering the Question
+    + percent (string, optional) - Points received / maximum points
+    + embedded.question (object, required) - The Knowledge Question to which the Question Fill belongs
+    + embedded.test_fill (object, required) - The Knowledge Test Fill to which the Question Fill belongs
+
++ Parameters
+    + id (number, required) - Id of the Knowledge Question Fill
+
+### Retrieve Knowledge Question Fill [GET]
+
++ Response 200 (application/hal+json)
+
+        {
+            "id": 1,
+            "created": "2015-11-27T16:56:20+0100",
+            "_links": {
+                "self": {
+                    "href": "\/api\/question-fills\/1"
+                },
+                "question": {
+                    "href": "Questions:read"
+                },
+                "test_fill": {
+                    "href": "\/api\/test-fills?id=1"
+                }
+            },
+            "_embedded": {
+                "question": {
+                    "id": 1,
+                    "type": "closed",
+                    "text": [],
+                    "number_of_answers": 4,
+                    "multiple_correct": true,
+                    "answers": [
+                        {
+                            "id": 4,
+                            "_embedded": {
+                                "text": {
+                                    "cs": "Odpoved 1",
+                                    "en": "Answer 1"
+                                }
+                            }
+                        },
+                        {
+                            "id": 3,
+                            "_embedded": {
+                                "text": {
+                                    "cs": "Odpoved 1",
+                                    "en": "Answer 1"
+                                }
+                            }
+                        },
+                        {
+                            "id": 2,
+                            "_embedded": {
+                                "text": {
+                                    "cs": "Odpoved 1",
+                                    "en": "Answer 1"
+                                }
+                            }
+                        },
+                        {
+                            "id": 1,
+                            "_embedded": {
+                                "text": {
+                                    "cs": "Odpoved 1",
+                                    "en": "Answer 1"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "test_fill": {
+                    "id": 1,
+                    "start": "2015-11-27T16:53:19+0100",
+                    "_links": {
+                        "self": {
+                            "href": "\/api\/test-fills\/1"
+                        },
+                        "test": {
+                            "href": "\/api\/tests\/1"
+                        },
+                        "drawn_questions": {
+                            "href": "\/api\/drawn-questions"
+                        }
+                    },
+                    "_embedded": {
+                        "completed": false,
+                        "state": "in_progress",
+                        "test": {
+                            "id": 1,
+                            "type": "one-page",
+                            "number_of_questions": 2,
+                            "maximum_time": 300,
+                            "shuffle_questions": true,
+                            "_links": {
+                                "self": {
+                                    "href": "\/api\/tests\/1"
+                                }
+                            },
+                            "_embedded": {
+                                "name": []
+                            }
+                        }
+                    }
+                },
+                "answer_fills": []
+            }
+        }
+
+
+# Group Answers
+
+## Answers Collection [/api/answers?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of answers returned in the request
+    + page (number, optional) - Distance from beginning of the array of available answers
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Answers [GET]
+
+List all Answers.
+
++ Response 200 (application/hal+json)
+
+        {
+          "_embedded": {
+            "answers": [
+              {
+                "id": 1,
+                "correct": true,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/answers\/1"
+                  }
+                },
+                "_embedded": {
+                    "text": {
+                        "cs": "Odpoved 1",
+                        "en": "Answer 1"
+                    }
+                }
+              },
+              {
+                "id": 2,
+                "correct": false,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/answers\/2"
+                  }
+                },
+                "_embedded": {
+                    "text": {
+                        "cs": "Odpoved 1",
+                        "en": "Answer 1"
+                    }
+                }
+              }
+            ]
+          }
+        }
+
+### Create an Answer [POST]
+
+Creates an Answer with given parameters.
+
++ Request (application/json)
+
+        {
+            "question": 1,
+            "correct": false,
+            "text": {
+              "cs": "Lorem czsum...",
+              "en": "Lorem ensum..."
+            }
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "inserted": {
+            "id": 13,
+            "correct": false,
+            "_links": {
+              "self": {
+                "href": "\/api\/answers\/13"
+              }
+            },
+            "_embedded": {
+              "text": {
+                "cs": "Lorem czsum...",
+                "en": "Lorem ensum..."
+              },
+              "question": {
+                "id": 1,
+                "type": "closed",
+                "shuffle_answers": true,
+                "number_of_answers": 4,
+                "multiple_correct": true,
+                "short_answer": true,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/questions\/1"
+                  }
+                },
+                "_embedded": {
+                    "text": {
+                        "cs": "Odpoved 1",
+                        "en": "Answer 1"
+                    }
+                }
+              }
+            }
+          }
+        }
+
+## Question's Answers Collection [/api/questions/{question_id}/answers?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + question_id (number, required) - Id of the Question which the Answers belong to.
+    + limit (number, optional) - Limits number of answers returned in the request
+    + page (number, optional) - Distance from beginning of the array of available answers
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Question's Answers [GET]
+
+Lists all Answers which belong to the given Question.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "answers": [
+                    {
+                        "id": 1,
+                        "correct": true,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/answers\/1"
+                            }
+                        },
+                        "_embedded": {
+                            "text": {
+                                "cs": "Odpoved 1",
+                                "en": "Answer 1"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "correct": false,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/answers\/2"
+                            }
+                        },
+                        "_embedded": {
+                            "text": {
+                                "cs": "Odpoved 2",
+                                "en": "Answer 2"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+## Answer [/api/answers/{id}]
+
++ Attributes
+    + id (number, required) - The unique id of the Answer
+    + correct (boolean, required) - Is the answer correct? **Only displayed if you are superadmin!**
+    + embedded.question (object, required) - The Question to which the Answer belongs
+    + embedded.text (object, required) - Localized text of the answer
+
++ Parameters
+    + id (number, required) - Answer's id
+
+### Retrieve an Answer [GET]
+    
+Retrieves Client with the given ID.
+
++ Response 200 (application/hal+json)
+
+        {
+          "id": 1,
+          "correct": true,
+          "_links": {
+            "self": {
+              "href": "\/api\/answers\/1"
+            }
+          },
+          "_embedded": {
+            "text": {
+              "cs": "Odpoved 1",
+              "en": "Answer 1"
+            },
+            "question": {
+              "id": 1,
+              "type": "closed",
+              "shuffle_answers": true,
+              "number_of_answers": 4,
+              "multiple_correct": true,
+              "short_answer": true,
+              "_links": {
+                "self": {
+                  "href": "\/api\/questions\/1"
+                }
+              },
+              "_embedded": {
+                "text": {
+                    "cs": "Otazka 1",
+                    "en": "Question 1"
+                }
+              }
+            }
+          }
+        }
+
+### Update an Answer [PUT]
+
+Updates a Client with the given ID.
+
++ Request (application/json)
+
+        {
+            "question": 1,
+            "correct": true,
+            "text": {
+              "cs": "Whatever cs...",
+              "en": "Whatever en..."
+            }
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "updated": {
+            "id": 1,
+            "correct": true,
+            "_links": {
+              "self": {
+                "href": "\/api\/answers\/1"
+              }
+            },
+            "_embedded": {
+              "text": {
+                "en": "Whatever en...",
+                "cs": "Whatever cs..."
+              },
+              "question": {
+                "id": 1,
+                "type": "closed",
+                "shuffle_answers": true,
+                "number_of_answers": 4,
+                "multiple_correct": true,
+                "short_answer": true,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/questions\/1"
+                  }
+                },
+                "_embedded": {
+                  "text": []
+                }
+              }
+            }
+          }
+        }
+
+
+### Hide an Answer [DELETE]
+
+Sets Answer as hidden.
+
++ Response 200 (applicaiton/hal+json)
+
+        {
+            "ok": true
+        }
+
+
+# Group Questions
+
+## Questions Collection [/api/questions?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + limit (number, optional) - Limits number of clients returned in the request
+    + page (number, optional) - Distance from beginning of the array of available clients
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Questions [GET]
+
+List all Questions.
+
++ Response 200 (application/hal+json)
+
+        {
+          "_embedded": {
+            "questions": [
+              {
+                "id": 1,
+                "type": "closed",
+                "number_of_answers": 4,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/questions\/1"
+                  }
+                },
+                "_embedded": {
+                  "answers_count": 8,
+                  "text": []
+                }
+              },
+              {
+                "id": 2,
+                "type": "closed",
+                "number_of_answers": 4,
+                "_links": {
+                  "self": {
+                    "href": "\/api\/questions\/2"
+                  }
+                },
+                "_embedded": {
+                  "answers_count": 8,
+                  "text": []
+                }
+              }
+            ]
+          }
+        }
+
+### Create a Question [POST]
+
+Creates a Question with given parameters.
+
++ Request (application/json)
+
+        {
+            "test": 1,
+            "type": "open",
+            "short_answer": true,
+            "number_of_answers": 2,
+            "text": {
+                "cs": "Lorem czsum...",
+                "en": "Lorem ensum..."
+            }
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "inserted": {
+            "id": 43,
+            "type": "closed",
+            "shuffle_answers": true,
+            "number_of_answers": 2,
+            "multiple_correct": true,
+            "_links": {
+              "self": {
+                "href": "\/api\/questions\/43"
+              }
+            },
+            "_embedded": {
+              "text": {
+                "cs": "Lorem czsum...",
+                "en": "Lorem ensum..."
+              },
+              "test": {
+                "id": 1,
+                "type": "question-per-page",
+                "number_of_questions": 2,
+                "maximum_time": 300,
+                "shuffle_questions": true,
+                "logo": "http:\/\/example.com\/test\/1",
+                "test_fills": [],
+                "_links": {
+                  "self": {
+                    "href": "\/api\/tests\/1"
+                  }
+                },
+                "_embedded": {
+                  "name": [],
+                  "intro": [],
+                  "average_fill_time": null
+                }
+              },
+              "answers_count": 0
+            }
+          }
+        }
+
+## Test's Questions Collection [/api/tests/{test_id}/questions?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + test_id (number, required) - ID of the Knowledge Test.
+    + limit (number, optional) - Limits number of clients returned in the request
+    + page (number, optional) - Distance from beginning of the array of available clients
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Test's Questions [GET]
+
+List all Questions belonging to the Test.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "questions": [
+                    {
+                        "id": 1,
+                        "type": "closed",
+                        "number_of_answers": 2,
+                        "multiple_correct": true,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/questions\/2"
+                            }
+                        },
+                        "_embedded": {
+                            "answers_count": 2,
+                            "text": {
+                                "cs": "Bloooom?",
+                                "en": "Broooom?"
+                            },
+                            "answers": [
+                                {
+                                    "id": 1,
+                                    "correct": true,
+                                    "_links": {
+                                        "self": {
+                                            "href": "\/api\/answers\/1"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "text": {
+                                            "cs": "Baaa",
+                                            "en": "Blaa"
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 2,
+                                    "correct": true,
+                                    "_links": {
+                                        "self": {
+                                            "href": "\/api\/answers\/2"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "text": {
+                                            "cs": "Baaaa 2",
+                                            "en": "Baaa 2"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": 3,
+                        "type": "open",
+                        "short_answer": true,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/questions\/3"
+                            }
+                        },
+                        "_embedded": {
+                            "answers_count": 0,
+                            "text": {
+                                "cs": "Bla gkofdso sd ?",
+                                "en": "Fkososd fok fsdko ?"
+                            }
+                        }
+                    },
+                    {
+                        "id": 4,
+                        "type": "open",
+                        "short_answer": false,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/questions\/4"
+                            }
+                        },
+                        "_embedded": {
+                            "answers_count": 0,
+                            "text": {
+                                "cs": "Bla gkofdso sd aaaaaaaaaaa ?",
+                                "en": "Fkososd fok fsdko aaaaaaaaa ?"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "type": "closed",
+                        "number_of_answers": 4,
+                        "multiple_correct": false,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/questions\/1"
+                            }
+                        },
+                        "_embedded": {
+                            "answers_count": 4,
+                            "text": {
+                                "cs": "Bloooom 2?",
+                                "en": "Broooom 2?"
+                            },
+                            "answers": [
+                                {
+                                    "id": 3,
+                                    "correct": true,
+                                    "_links": {
+                                        "self": {
+                                            "href": "\/api\/answers\/3"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "text": {
+                                            "cs": "Baaa",
+                                            "en": "Blaa"
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 4,
+                                    "correct": false,
+                                    "_links": {
+                                        "self": {
+                                            "href": "\/api\/answers\/4"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "text": {
+                                            "cs": "Baaaa 2",
+                                            "en": "Baaa 2"
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 5,
+                                    "correct": false,
+                                    "_links": {
+                                        "self": {
+                                            "href": "\/api\/answers\/5"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "text": {
+                                            "cs": "Baaa",
+                                            "en": "Blaa"
+                                        }
+                                    }
+                                },
+                                {
+                                    "id": 6,
+                                    "correct": false,
+                                    "_links": {
+                                        "self": {
+                                            "href": "\/api\/answers\/6"
+                                        }
+                                    },
+                                    "_embedded": {
+                                        "text": {
+                                            "cs": "Baaaa 2",
+                                            "en": "Baaa 2"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+
+## Question [/api/questions/{id}]
+
++ Attributes
+    + id (number, required) - Unique id of the Question
+    + type (string, required) - Type of the Question, can be 'open' or 'closed'
+    + shuffle_answers (boolean, required) - Should the answers be shuffled when drawing for a Test Fill? Required for 'closed' Question.
+    + number_of_answers (number, required) - How many answers should be drawn for the question? Required for 'closed' Question.
+    + multiple_correct (boolean, required) - Is there only one answer correct or are there multiple correct? Required for 'closed' Question.
+    + short_answer (boolean, required) - Should the open answer be short or long (text input vs. textarea)? Required for 'open' Question.
+    + embedded.description (object, required) - Internationalized text of the Question.
+    + embedded.answers (array, required) - Collection of Question's Answers.
+    + embedded.test (object, required) - The Test to which the Quetion belongs.
+    + embedded.answers_count (number, required) - Number of Answers belonging to the Question.
+
++ Parameters
+    + id (number, required) - Question's id
+
+### Retrieve a Question [GET]
+
+Retrieves a Question with the given ID.
+
++ Response 200 (application/hal+json)
+
+        {
+            "id": 1,
+            "type": "closed",
+            "number_of_answers": 4,
+            "multiple_correct": false,
+            "_links": {
+                "self": {
+                    "href": "\/api\/questions\/1"
+                }
+            },
+            "_embedded": {
+                "answers_count": 2,
+                "text": {
+                    "cs": "Bloooom?",
+                    "en": "Broooom?"
+                },
+                "test": {
+                    "id": 1,
+                    "type": "question-per-page",
+                    "number_of_questions": 2,
+                    "maximum_time": 300,
+                    "shuffle_questions": true,
+                    "logo": "http:\/\/example.com\/test\/1",
+                    "test_fills": [],
+                    "_links": {
+                        "self": {
+                            "href": "\/api\/tests\/1"
+                        }
+                    },
+                    "_embedded": {
+                        "name": [],
+                        "intro": [],
+                        "average_fill_time": null
+                    }
+                },
+                "answers": [
+                    {
+                        "id": 1,
+                        "correct": true,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/answers\/1"
+                            }
+                        },
+                        "_embedded": {
+                            "text": {
+                                "cs": "Baaa",
+                                "en": "Blaa"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "correct": false,
+                        "_links": {
+                            "self": {
+                                "href": "\/api\/answers\/2"
+                            }
+                        },
+                        "_embedded": {
+                            "text": {
+                                "cs": "Baaaa 2",
+                                "en": "Baaa 2"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+### Update a Question [PUT]
+
+Updates a Question with the given ID.
+
++ Request (application/json)
+
+        {
+            "test": 1,
+            "type": "closed",
+            "multiple_correct": true,
+            "shuffle_answers": true,
+            "number_of_answers": 2,
+            "text": {
+                "cs": "Lorem czsum...",
+                "en": "Lorem ensum..."
+            }
+        }
+
++ Response 201 (application/hal+json)
+
+        {
+          "ok": true,
+          "updated": {
+            "id": 1,
+            "type": "closed",
+            "shuffle_answers": true,
+            "number_of_answers": 2,
+            "multiple_correct": true,
+            "_links": {
+              "self": {
+                "href": "\/api\/questions\/1"
+              }
+            },
+            "_embedded": {
+              "answers_count": 0,
+              "text": {
+                "en": "Lorem ensum...",
+                "cs": "Lorem czsum..."
+              },
+              "test": {
+                "id": 1,
+                "type": "question-per-page",
+                "number_of_questions": 2,
+                "maximum_time": 300,
+                "shuffle_questions": true,
+                "logo": "http:\/\/example.com\/test\/1",
+                "test_fills": [],
+                "_links": {
+                  "self": {
+                    "href": "\/api\/tests\/1"
+                  }
+                },
+                "_embedded": {
+                  "name": [],
+                  "intro": [],
+                  "average_fill_time": null
+                }
+              }
+            }
+          }
+        }
+
+### Hide a Question [DELETE]
+
+Sets Question as hidden.
+
++ Response 200 (applicaiton/hal+json)
+
+        {
+            "ok": true
+        }
