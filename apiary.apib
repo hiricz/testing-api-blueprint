@@ -899,6 +899,7 @@ Retrieves a list of Candidate's Cute Test Fills.
     + scoreNumber (string, optional) - Score of the test
     + blocked (string, optional) - Date when the fill was blocked
     + redirect_url (string, required) - URL to which Cut-e will redirect the user after finishing/closing the test
+    + result (string, required) - Result html parsed from cut-e report
     + test_url (string, required) - URL on which the user can fill the test and shall be redirected to after creating a Cute ll
     + embedded.completed (boolean, required) - Was the fill completed?
     + embedded.state (string, required) - State of the fill, can be `not_started`, `in_progress`, `blocked` or `completed`.
@@ -921,9 +922,12 @@ Retrieves a Cute Test Fill.
             "id": 12,
             "redirect_url": "http:\/\/example.com\/",
             "test_url": "http:\/\/www.cut-e.net\/maptq\/ws\/ws_req.aspx?reqid=81C26FA4-6A5E-4DEC-9A69-700A5B5BF4B5",
+            "scoreNumber": "1",
+            "result": "<tr><td class='tdRulbaseBorder' align='center'></td></tr><tr><td class='tdRulbaseText'><b>Na čem můžete stavět:</b><br><br>Díky své energii obyčejně dokážete během hektických období podpořit své kolegy. Zůstáváte pozitivně naladěni, jste produktivní a většinou dokážete dobře pochopit individuální motivy chování svých spolupracovníků, což znamená, že během těžkých období dokážete podpořit a povzbudit své kolegy. Nicméně, v konfliktních nebo stresových situacích nedokážete pokaždé správně a přesně prosadit své zájmy.<br><br>Dokážete snadno a rychle vyhodnotit úkol či problém a rychle získat širší přehled o situaci. Z komplexních informací a dat dokážete vytvořit přesné závěry a podobně přesně dokážete realisticky, sofistikovaně a správně vyhodnotit příslušná řešení a postupy.<br><br>Oceňujete možnost vidět Vaši práci propojenou přímo na širší strategický kontext a tím i možnost pečlivě odvodit poměrně ambiciózní cíle pro oblast, za kterou zodpovídáte. Ačkoli Vaše nápady mohou být někdy nekonvenční a moderní, velmi pečlivě zvažujete široké spektrum faktorů, které mají vliv na Vaše úkoly.<br><br></td></tr><tr><td class='tdRulbaseText'><b>Co byste si měli uvědomit:</b><br><br>Pokud je pro Vás něco velmi důležité, jste schopni získat souhlas a podporu ostatních. Jinak se ale zaměřujete na faktickou stránku argumentace a často opomíjíte i ovlivnění Vašeho partnera svým vzhledem a vystupováním. Zejména v případě námitek a připomínek byste mohli vystupovat přesvědčivěji a více bojovat za jasné dohody.<br><br>Váš profesionální rozvoj není v popředí Vašeho zájmu. Jistota a bezpečí stávající pozice jsou pro Vás momentálně důležitější, než nutný postup v kariéře. Ačkoli si dobře uvědomujete své silné a slabé stránky a zajímá Vás zpětná vazba na Vaši osobu, nevyužíváte momentálně tyto znalosti k vlastnímu 'marketingu' a v návaznosti na další kariérní plány.<br><br>Ačkoli máte jasnou představu o individuálních schopnostech a potřebách rozvoje jednotlivých členů týmu, není pro Vás vždy lehké přirozeně zpracovat a využít příspěvky a názory ostatních. Snažíte se zahrnout ostatní do procesu plánování, vyslechnout jejich diskuse, ale mnohdy chápete takové procesy spíše jako ztrátu času.<br><br></td></tr><td colspan='1' align='left'><font class='fBodyklein'><B>Srovnávací skupina:</B> Celková dospělá populace</font></td>",
+            "access_hash": "m7ongutlp0j2knj",
             "_embedded": {
                 "completed": true,
-                "state": "blocked",
+                "state": "completed",
                 "cute_test": {
                     "id": 5,
                     "_links": {
@@ -1474,6 +1478,28 @@ Retrieves a list of all Tests belonging to the given Job.
                 ]
             }
         }
+
+## Job Categories's Cute Tests Collection [/api/job-categories/{job_category_id}/cute-tests?limit={limit}&page={page}&sort={sort}]
+
++ Parameters
+    + job_category_id (number, required) - Id of the Job Category
+    + limit (number, optional) - Limits number of Cute Tests returned in the request
+    + page (number, optional) - Distance from beginning of the array of available Cute Tests
+    + sort (string, optional) - Sorts the result in the given order. The format for sort is "column+ASC,column+DESC"
+
+### List Job Categories's Cute Tests [GET]
+
+Retrieves a list of all Tests belonging to the given Job Category.
+
++ Response 200 (application/hal+json)
+
+        {
+            "_embedded": {
+                "cute_tests": [
+                ]
+            }
+        }
+
 
 
 ## Cute Test [/api/cute-tests/{id}]
