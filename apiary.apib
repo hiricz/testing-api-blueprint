@@ -896,13 +896,13 @@ Retrieves a list of Candidate's Cute Test Fills.
     + id (number, required) - Id of the Cute Test Fill
     + start (string, required) - Date when the fill was started
     + end (string, optional) - Date when the fill was completed
-    + scoreNumber (string, optional) - Score of the test
     + blocked (string, optional) - Date when the fill was blocked
     + redirect_url (string, required) - URL to which Cut-e will redirect the user after finishing/closing the test
-    + result (string, required) - Result html parsed from cut-e report
     + test_url (string, required) - URL on which the user can fill the test and shall be redirected to after creating a Cute ll
     + embedded.completed (boolean, required) - Was the fill completed?
     + embedded.state (string, required) - State of the fill, can be `not_started`, `in_progress`, `blocked` or `completed`.
+    + embedded.scoreNumber (string, optional) - Score of the test
+    + embedded.result (string, required) - Result html parsed from cut-e report
     + `embedded.result_description` (string, optional) - If the test was completed, this parameter will be provided. It is a word description of the result. Can be `percentile`, `consistency_small`, `consistency_medium` and `consistency_high`.
 
 + Parameters
@@ -914,36 +914,38 @@ Retrieves a Cute Test Fill.
 
 **Side-effects:** If the fill is not finished yet, checks for its status at Cut-e API, which could time consuming.
 
+When Cute Test Fills is completed and user doesn't have email verified, no result properties are returned in the reponse.
+
 + Response 200 (application/hal+json)
 
         {
-            "start": "2015-11-19T10:53:48+0100",
-            "end": "2015-11-19T11:03:54+0100",
-            "id": 12,
-            "redirect_url": "http:\/\/example.com\/",
-            "test_url": "http:\/\/www.cut-e.net\/maptq\/ws\/ws_req.aspx?reqid=81C26FA4-6A5E-4DEC-9A69-700A5B5BF4B5",
-            "scoreNumber": "1",
-            "result": "<tr><td class='tdRulbaseBorder' align='center'></td></tr><tr><td class='tdRulbaseText'><b>Na čem můžete stavět:</b><br><br>Díky své energii obyčejně dokážete během hektických období podpořit své kolegy. Zůstáváte pozitivně naladěni, jste produktivní a většinou dokážete dobře pochopit individuální motivy chování svých spolupracovníků, což znamená, že během těžkých období dokážete podpořit a povzbudit své kolegy. Nicméně, v konfliktních nebo stresových situacích nedokážete pokaždé správně a přesně prosadit své zájmy.<br><br>Dokážete snadno a rychle vyhodnotit úkol či problém a rychle získat širší přehled o situaci. Z komplexních informací a dat dokážete vytvořit přesné závěry a podobně přesně dokážete realisticky, sofistikovaně a správně vyhodnotit příslušná řešení a postupy.<br><br>Oceňujete možnost vidět Vaši práci propojenou přímo na širší strategický kontext a tím i možnost pečlivě odvodit poměrně ambiciózní cíle pro oblast, za kterou zodpovídáte. Ačkoli Vaše nápady mohou být někdy nekonvenční a moderní, velmi pečlivě zvažujete široké spektrum faktorů, které mají vliv na Vaše úkoly.<br><br></td></tr><tr><td class='tdRulbaseText'><b>Co byste si měli uvědomit:</b><br><br>Pokud je pro Vás něco velmi důležité, jste schopni získat souhlas a podporu ostatních. Jinak se ale zaměřujete na faktickou stránku argumentace a často opomíjíte i ovlivnění Vašeho partnera svým vzhledem a vystupováním. Zejména v případě námitek a připomínek byste mohli vystupovat přesvědčivěji a více bojovat za jasné dohody.<br><br>Váš profesionální rozvoj není v popředí Vašeho zájmu. Jistota a bezpečí stávající pozice jsou pro Vás momentálně důležitější, než nutný postup v kariéře. Ačkoli si dobře uvědomujete své silné a slabé stránky a zajímá Vás zpětná vazba na Vaši osobu, nevyužíváte momentálně tyto znalosti k vlastnímu 'marketingu' a v návaznosti na další kariérní plány.<br><br>Ačkoli máte jasnou představu o individuálních schopnostech a potřebách rozvoje jednotlivých členů týmu, není pro Vás vždy lehké přirozeně zpracovat a využít příspěvky a názory ostatních. Snažíte se zahrnout ostatní do procesu plánování, vyslechnout jejich diskuse, ale mnohdy chápete takové procesy spíše jako ztrátu času.<br><br></td></tr><td colspan='1' align='left'><font class='fBodyklein'><B>Srovnávací skupina:</B> Celková dospělá populace</font></td>",
-            "access_hash": "m7ongutlp0j2knj",
+            "id": 1,
+            "start": "2016-06-12T01:38:01+0200",
+            "end": "2016-06-12T01:48:02+0200",
             "_embedded": {
                 "completed": true,
                 "state": "completed",
+                "score_number": 4,
+                "result_description": "consistency_high",
+                "parsed_report": "\r\n\t<tr>\r\n\t\t\t<td class=\"tdRulbaseBorder\" align=\"center\"><\/td>\r\n\t<\/tr>\r\n\t<tr>\r\n\t\t<td class=\"tdRulbaseText\"><b>Na \u010dem m\u016f\u017eete stav\u011bt:<\/b><br>\r\n\t\t\t<br>\r\n\t\t\tPracujete zp\u016fsobem, kter\u00fd je hodn\u011b orientov\u00e1n na dosa\u017een\u00ed c\u00edl\u016f a ve sv\u00e9 pr\u00e1ci zva\u017eujete pom\u011br n\u00e1klad\u016f a p\u0159\u00edjm\u016f. Uv\u011bdomujete si finan\u010dn\u00ed aspekty a db\u00e1te i na mo\u017en\u00e1 rizika. Nicm\u00e9n\u011b byste mohli sami sebe systemati\u010dt\u011bji organizovat - zejm\u00e9na pak s ohledem na lep\u0161\u00ed vyu\u017eit\u00ed Va\u0161ich zdroj\u016f a energie.\r\n<br><br>Dokon\u010dovat pl\u00e1ny a projekty konzistentn\u011b je pro V\u00e1s d\u016fle\u017eit\u00e9. Vysoce p\u0159itom cen\u00edte \u00fasp\u011bchy sv\u00e9 i ostatn\u00edch. Obvykle se rozhodujete jasn\u011b i v p\u0159\u00edpad\u011b, \u017ee rozhodnut\u00ed V\u00e1m osobn\u011b zp\u016fsob\u00ed nep\u0159\u00edjemnosti. Je-li to mo\u017en\u00e9, dr\u017e\u00edte se pravidel a p\u0159edpis\u016f organizace.\r\n<br><br>K Va\u0161\u00ed pr\u00e1ci p\u0159istupujete s \u0161irokou m\u00edrou strategick\u00e9ho pl\u00e1nov\u00e1n\u00ed a v oblasti, za kterou zodpov\u00edd\u00e1te, nos\u00edte v hlav\u011b ambici\u00f3zn\u00ed vize. P\u0159i rozv\u00edjen\u00ed mo\u017en\u00fdch strategi\u00ed zcela samoz\u0159ejm\u011b uva\u017eujete v konven\u010dn\u00edm r\u00e1mci, av\u0161ak oce\u0148ujete i nekonven\u010dn\u00ed a inovativn\u00ed \u0159e\u0161en\u00ed. Nicm\u00e9n\u011b, ne v\u017edy zv\u00e1\u017e\u00edte dlouhodob\u00fd dopad mo\u017en\u00fdch ovliv\u0148uj\u00edc\u00edch faktor\u016f, co\u017e s sebou n\u011bkdy p\u0159i implementaci Va\u0161ich n\u00e1pad\u016f p\u0159in\u00e1\u0161\u00ed nep\u0159\u00edjemnosti.\r\n<br><br>\r\n\t\t<\/td>\r\n\t<\/tr>\r\n\t<tr>\r\n\t\t<td class=\"tdRulbaseText\"><b>Co byste si m\u011bli uv\u011bdomit:<\/b><br>\r\n\t\t\t<br>\r\n\t\t\tJste r\u00e1di v kolektivu ostatn\u00edch a sv\u00fdm sociabiln\u00edm, \u017eiv\u00fdm p\u0159\u00edstupem dokonale p\u0159isp\u00edv\u00e1te k pozitivn\u00ed n\u00e1lad\u011b v t\u00fdmu. Na druhou stranu svou vlastn\u00ed pr\u00e1ci rad\u011bji d\u011bl\u00e1te sami a jste tak rovn\u011b\u017e daleko v\u00fdkonn\u011bj\u0161\u00ed. N\u011bkdy ale kolegy do pr\u00e1ce zapomenete zahrnout nebo je informovat. Jste p\u0159ipraveni p\u0159isp\u011bt k \u00fasp\u011bchu cel\u00e9ho t\u00fdmu, ale tak\u00e9 m\u00e1te r\u00e1di, pokud jsou vyzdvi\u017eeny i Va\u0161e vlastn\u00ed n\u00e1pady a \u0159e\u0161en\u00ed. \u010casto se tak zapletete do bou\u0159liv\u00fdch diskus\u00ed a ostatn\u00edm m\u016f\u017eete p\u0159ipadat tvrdohlav\u00ed.\r\n<br><br>\u010cast\u011bji byste mohli jednat iniciativn\u011bji a podobn\u011b \u010dast\u011bji byste mohli i p\u0159evz\u00edt sami za sebe zodpov\u011bdnost. A\u010dkoli p\u0159i \u0159e\u0161en\u00ed \u00fakol\u016f  jedn\u00e1te pragmaticky a se zam\u011b\u0159en\u00edm na c\u00edl, v\u017edy hled\u00e1te n\u011bkoho, kdo V\u00e1m Va\u0161e jedn\u00e1n\u00ed a d\u00edl\u010d\u00ed kroky potvrd\u00ed. \u010casto p\u0159ipravujete \u0159e\u0161en\u00ed pro ostatn\u00ed, av\u0161ak nem\u00e1te v\u017edy pot\u0159ebnou sebed\u016fv\u011bru u\u010dinit tato \u0159e\u0161en\u00ed sami.\r\n<br><br>K \u00fakol\u016fm p\u0159istupujete systematicky a se schopnost\u00ed dobr\u00e9ho pl\u00e1nov\u00e1n\u00ed. V hlav\u011b m\u00e1te ur\u010dit\u00e9 priority a tak\u00e9 jste si v\u011bdomi nezbytn\u00fdch zdroj\u016f pro zaji\u0161t\u011bn\u00ed projektu.  B\u011bhem procesu pl\u00e1nov\u00e1n\u00ed zva\u017eujete mo\u017en\u00e9 pot\u00ed\u017ee a p\u0159ek\u00e1\u017eky, av\u0161ak ne v\u017edy odhadnete realisticky \u010das, pot\u0159ebn\u00fd pro \u00fasp\u011b\u0161n\u00e9 dokon\u010den\u00ed pl\u00e1novan\u00fdch aktivit.\r\n<br><br>\r\n\t\t<\/td>\r\n\t<\/tr>\r\n\t<td colspan=\"1\" align=\"left\"><font class=\"fBodyklein\"><B>Srovn\u00e1vac\u00ed skupina:<\/B> Experti (Norsko)<\/font><\/td>\t\r\n",
+                "result": "<response xmlns=\"\"><result><scale_1>5<\/scale_1><scale_2>7<\/scale_2><scale_3>4<\/scale_3><scale_4>7<\/scale_4><scale_5>3<\/scale_5><scale_6>5<\/scale_6><scale_7>4<\/scale_7><scale_8>7<\/scale_8><scale_9>5<\/scale_9><scale_10>5<\/scale_10><scale_11>5<\/scale_11><scale_12>6<\/scale_12><scale_13>6<\/scale_13><scale_14>5<\/scale_14><scale_15>4<\/scale_15><scale_16>3<\/scale_16><scale_17>8<\/scale_17><scale_18>4<\/scale_18><consistency>4<\/consistency><scale_avg>5<\/scale_avg><\/result><candidateid>504<\/candidateid><instrumentid>102<\/instrumentid><normsetid>14<\/normsetid><\/response>",
                 "cute_test": {
-                    "id": 5,
+                    "id": 1,
                     "_links": {
                         "self": {
-                            "href": "\/api\/cute-tests\/5"
+                            "href": "\/api\/cute-tests\/1"
                         }
                     },
                     "_embedded": {
-                        "name": {
-                          "cs": "Cute Test 5",
-                          "en": "Cute Test 5"
-                        }
+                        "name": [],
+                        "short_name": [],
+                        "intro": [],
+                        "result_type": "shapes"
                     }
                 }
             }
         }
+
 
 # Group Cute Test Fill Reports
 
